@@ -1,195 +1,474 @@
 # Photogram Industrial: Profile page and views
 
-## Walkthrough video
-
-**Please note**, the video is from a previous iteration of the project, so there are some differences:
-
-- Anything contained in the project "README" is now contained in this Lesson
-- Active Storage is used instead of CarrierWave for image uploads
-- The layout uses a 3-column sidebar design instead of a traditional navbar
-- Bootstrap 5 tabs are used for Posts/Likes on the profile page instead of separate pages
-- Follow button states are "Following"/"Requested"/"Follow" instead of "Un-follow"/"Un-request"/"Follow"
-- Like/unlike is now a heart icon toggle instead of text links
-- Edit/delete actions use dropdown menus instead of icon buttons
-- Followers, following, and pending requests are now separate pages instead of modals
-
-Did you read the differences above? Good! Then [here is a walkthrough video for an older version of this project.](https://share.descript.com/view/h3WXOoqhNNU)
-
 ## Getting started
 
-Let's continue with `photogram-industrial`, keeping in mind a rough target to work towards:
+Let's continue building our Photogram Industrial project. Here's the target we're working towards:
 
-[photogram-industrial.matchthetarget.com](https://photogram-industrial.matchthetarget.com/)
+[pg-industrial.matchthetarget.com](https://pg-industrial.matchthetarget.com/)
 
-So navigate to `github.com/codespaces` and reopen your `photogram-industrial` codespace to continue building on what you accomplished in _Photogram Industrial Parts 1, 2, and 3_.
+Navigate to `github.com/codespaces` (or reopen the previous lesson and use the "Load assignment" button) and reopen your `photogram-industrial` project codespace to continue building on what you accomplished in _Photogram Industrial Parts 1, 2, and 3_.
 
+At this point, you should have all five models with their associations, validations, and scopes; a complete routes file; the application layout with a 3-column sidebar design; shared partials for the navbar and flash messages; `ApplicationController` with authentication, permitted parameters, and Ransack; and customized scaffold controllers for Photos, Comments, Likes, and FollowRequests. What we _don't_ have yet are the custom view templates — the user profile page, the photo card, the feed, the discover page, and so on. That's what we'll build in this lesson.
 
-## Goal
-
-By the end of this lesson, you should be able to:
-
-- Run `rake grade` and get full credit for the `photogram-industrial` automated tests. You will need to do some of those parts on your own, since not everything is shown in the lesson text here or the video. See the bottom of this lesson for some hints and solution pull requests to help you get there.
-
-Additional grading on this project will come from the pull requests.
-
-- Submit four pull requests (PRs) (**See the next lesson [_Photogram Industrial Pull Requests_](https://learn.firstdraft.com/lessons/642-photogram-industrial-pull-requests) for instructions and submission fields**):
-  - `<initials>-photogram-industrial` compared to `main`
-  - `<initials>-starting-on-ui` compared to `<initials>-photogram-industrial`
-  - `<initials>-profile-page` compared to `<initials>-starting-on-ui`
-  - `<initials>-tabbed-interface` compared to `<initials>-profile-page`
-
-## Branch and open pull requests
-
-Before we begin, I'd like to create a new branch. First, let's make sure to open pull requests on Github for the branches we've been working on.
-
-Follow along [with this video](https://share.descript.com/view/RLP4apAu5pp) for a visual demonstration of the process. You can also visit the next lesson [_Photogram Industrial Pull Requests_](https://learn.firstdraft.com/lessons/642-photogram-industrial-pull-requests) now to see some dedicated instructions and submit the first pull request there.
-
-Make sure you've pushed the `<initials>-photogram-industrial` and `<initials>-starting-on-ui` branches to Github and that `git status` returns `Everything up-to-date`.
-
-Navigate to your GitHub repository fork of the project (where you have been pushing to at `github.com/YOUR_USERNAME/photogram-industrial`). If you switch to one of your branches, you can click a button to open the pull request.
-
-At this point, you can compare the branch to any of the other branches or commits. I could compare it to the `appdev-projects/photogram-industrial` parent repository that we forked it from. That's not always the case because most of the time when you work on your own projects, it will be from a brand new repository and not a fork of somebody elses's repository.
-
-In this case, we will switch the **base repository** to my _own_ fork of the repository (e.g., `raghubetina/photogram-industrial`), and compare our `<initials>-photogram-industrial` against the **base branch** `main`.
-
-With that selected, we can pick a nice name for the pull request. Don't just use the branch name, add some explanation. Perhaps: "Setting up domain model, business logic, and sample data". Now you can open the PR.
-
-Within the PR we can now view the files that were changed in line-by-line granular detail (generated by `git diff`), and we can receive comments and review of those changes. Any more commits that we make on the branch will be automatically updated on this open PR!
-
-With a PR open on `<initials>-photogram-industrial` to `main`, we can open a second PR for the `<initials>-starting-on-ui` branch. Again, switch the base repository to your own repo. In this case, we _don't_ want to compare this second branch to `main`, because that would take all of the changes including those from the branch `<initials>-photogram-industrial` that we branched off (and just opened a PR for). Instead, we will compare `<initials>-starting-on-ui` to _its_ parent branch `<initials>-photogram-industrial`.
-
-Again, we can give this PR another useful title, like "Starting on UI", then open it. And we will see the `git diff` in this PR just compares the two branches, ignoring `main`.
-
-Back in a terminal, make sure you are on the `starting-on-ui` branch, and branch off of _this_ branch to continue your work.
+Make sure your sample data is loaded before continuing:
 
 ```
-% git checkout rb-starting-on-ui
-% git checkout -b rb-user-profile
+rake sample_data
 ```
 
-## User show page route
-
-Let's get the app running with `bin/dev`.
-
-I want to start on the user's show page, because everything will hinge on that. There will be links there for their followers, following, and pending pages. We'll also need a way to follow users on that page.
-
-Typically, the URL for a user's page is just `/username`, like `/alice`. Of course, if you try that now you will get a `No route matches` error.
-
-Devise doesn't set up the normal CRUD routes for us, so even if we tried something like `/users/1`, we would still get the routing error.
-
-But that's okay, because we know how to RCAV. We can build the route we want from scratch. Recall from Part 3, we've already set up the `/:username` route at the bottom of our routes file:
-
-```ruby{13}
-Rails.application.routes.draw do
-  root "users#feed"
-
-  devise_for :users
-
-  resources :comments
-  resources :follow_requests
-  resources :likes
-  resources :photos do
-    resources :comments, only: [:index]
-    resources :likes, only: [:index]
-  end
-  resources :users, only: [ :index ]
-
-  get ":username" => "users#show", as: :user
-  # ...
-end
-```
-{: filename="config/routes.rb" }
-
-Because `"/:username"` is such a general route we need to put it at the bottom of the list. Otherwise, anytime we tried to get to `"/photos"` or `"/comments"`, Rails would try to fill that segment in as the flexible `:username` parameter.
-
-In the live app, try to navigate to `/alice`. Our `UsersController` already has a `show` action from Part 3, but it may be bare. Let's fill it in:
-
-```ruby{6}
-class UsersController < ApplicationController
-  before_action :set_user, only: %i[ show ]
-
-  def show
-  end
-
-  # ...
-
-  private
-
-    def set_user
-      if params[:username]
-        @user = User.find_by!(username: params.fetch(:username))
-      else
-        @user = current_user
-      end
-    end
-end
-```
-{: filename="app/controllers/users_controller.rb" }
-
-We are using a `before_action` with a private `set_user` method, which uses `find_by!` with the `:username` parameter.
-
-We use `find_by!` (with the bang `!`) rather than `find_by`, because `find_by` returns `nil` when no record is found, causing a confusing `undefined method for nil` 500-error. The `find_by!` method instead raises an `ActiveRecord::RecordNotFound` exception, which Rails automatically converts into a clean 404 "not found" page — which is what we want when someone navigates to a username that doesn't exist.
-
-Now make our view template `app/views/users/show.html.erb`, say "hi" in it, and try to view the page `/alice`. Working? Good! Commit that work.
+Let's create a new branch for this work:
 
 ```
-% git add -A
-% git commit -m "Set up users#show action"
+git checkout -b <your-initials>-profile-page-and-views
 ```
 
-And push! (with the `--set-upstream` flag if it's the first push)
+## Custom image CSS
+
+Before we start building views, let's add a small CSS file that defines some reusable image sizing classes. These will be used throughout our partials for avatars and profile images.
+
+Create a new file `app/assets/stylesheets/custom-image.css`:
+
+```css
+/* Custom image styles, mostly for Phase 2 Photogram targets */
+
+.img-cover {
+  object-fit: cover;
+  object-position: center;
+}
+
+.img-small {
+  width: 36px;
+  height: 36px;
+}
+
+.img-medium {
+  width: 128px;
+  height: 128px;
+}
+
+.img-large {
+  width: 200px;
+  height: 200px;
+}
+```
+{: filename="app/assets/stylesheets/custom-image.css" }
+
+Why do we need these? Without `object-fit: cover`, images stretch or squish to fit their container. With `cover`, the image maintains its aspect ratio and fills the container, cropping any overflow. Combined with `border-radius: 50%` (from Bootstrap's `rounded-circle` class), this gives us perfectly circular avatar images regardless of the source image's dimensions.
+
+The size classes (`img-small`, `img-medium`, `img-large`) give us consistent sizing across the app — small for inline avatars next to comments, medium for the profile page avatar, and large for the settings/edit page.
+
+Commit:
 
 ```
-% git push
+git add -A
+git commit -m "added custom image CSS classes"
 ```
 
-Once you push, you should see a link to open a pull request in the terminal. You can click that link, and then be sure to set the base branch to the most recent branch (`rb-starting-on-ui` for me), so you are only comparing these recent changes to that (which is in turn comparing against `photogram-industrial`, which is in turn comparing against `main`).
+## List group layout partial
 
-## User profile header
+We'll be rendering collections of photos wrapped in `<li>` elements throughout the app. Rather than repeating the wrapping markup, let's create a layout partial that Rails can use with `render ... layout:`.
 
-With the route and action working, let's start building out the profile page. We'll start with the header area — the profile banner, avatar, display name, username, and stats.
+```erb
+<li class="list-group-item list-group-action-item">
+  <%= yield %>
+</li>
+```
+{: filename="app/views/layouts/_list_group.html.erb" }
 
-In the target, the profile page has a banner image area at the top, followed by the user's avatar overlapping the banner, their display name, username, bio, website, and counts for followers/following/pending/posts.
+When you pass `layout: "layouts/list_group"` to a `render partial: ... collection:` call, Rails wraps each rendered partial in this layout. The `<%= yield %>` is where the partial's content gets inserted. This keeps our view code DRY — we define the wrapping `<li>` once and reuse it everywhere.
 
-Let's build this out in `app/views/users/show.html.erb`:
+## The photo card partial
+
+The photo card is the most important partial in the app. It renders a single photo with its owner's avatar, the image itself, like/comment counts, action buttons, caption, comments, and a comment form. This partial is reused on the profile page, feed, discover, and photo show pages.
+
+Replace the scaffold-generated `app/views/photos/_photo.html.erb` with:
+
+```erb
+<div id="<%= dom_id(photo) %>">
+  <% if photo.pinned? && current_page?(user_path(photo.owner.username)) %>
+    <div class="icon-link text-primary">
+      <i class="fa-solid fa-thumbtack"></i>
+      Pinned
+    </div>
+  <% end %>
+  <div class="h5 m-0 p-0 d-flex align-items-center justify-content-between mb-2">
+    <div class="d-flex">
+      <%= image_tag photo.owner.avatar_image, class: "rounded-circle me-2 img-cover img-small" %>
+
+      <%= link_to photo.owner.username, user_path(photo.owner.username), class: "text-body link-underline-secondary link-underline-opacity-0 link-underline-opacity-100-hover" %>
+    </div>
+    <%= render "follow_requests/follow_unfollow", sender: current_user, recipient: photo.owner %>
+  </div>
+  <div>
+    <%= image_tag photo.image, class: "img-fluid w-100" %>
+  </div>
+  <div class="d-flex">
+    <%= link_to photo.likes_count, photo_likes_path(photo), class: "link-primary text-decoration-none pe-1" %>
+    <span>
+      <%= "like".pluralize(photo.likes_count) %>
+    </span>
+  </div>
+  <div class="d-flex justify-content-between">
+    <div class="d-flex">
+      <%= render "photos/likes", photo: photo %>
+      <%= link_to photo_path(photo), class: "btn btn-link icon-link text-decoration-none" do %>
+        <i class="fa-regular fa-comment"></i>
+        <%= photo.comments_count %>
+      <% end %>
+    </div>
+    <div class="d-flex">
+      <div class="dropdown">
+        <%= button_tag class: "btn btn-link text-decoration-none",
+        data: { bs_toggle: "dropdown"}, aria: {expanded: false} do %>
+          <i class="fa-solid fa-ellipsis"></i>
+        <% end %>
+        <ul class="dropdown-menu">
+          <li>
+            <%= link_to edit_photo_path(photo), class: "dropdown-item" do %>
+              Edit
+            <% end %>
+          </li>
+          <li>
+            <%= button_to photo_path(photo), method: :delete, class: "dropdown-item" do %>
+              Delete
+            <% end %>
+          </li>
+          <li>
+            <%= button_to photo_path(photo), method: :patch, class: "dropdown-item", params: { photo: { pinned: !photo.pinned } } do %>
+              <%= photo.pinned? ? "Un-pin" : "Pin" %>
+            <% end %>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p>
+    <%= link_to user_path(photo.owner.username), class: "text-decoration-none" do %>
+      <%= photo.owner.display_name %>
+      <span class="fw-lighter text-body">
+        @<%= photo.owner.username %>
+      </span>
+    <% end %>
+    <span class="fw-lighter">
+      &middot;
+      <%= time_ago_in_words(photo.created_at) %>
+    </span>
+    <p>
+      <%= photo.caption %>
+    </p>
+  </p>
+
+  <ul class="list-group list-group-flush">
+    <%= render photo.comments.default_order %>
+    <li class="list-group-item mt-2">
+      <%= render "comments/form", comment: photo.comments.build %>
+    </li>
+  </ul>
+</div>
+```
+{: filename="app/views/photos/_photo.html.erb" }
+
+There's a lot going on here, so let's break it down section by section.
+
+### Pinned indicator
+
+```erb
+<% if photo.pinned? && current_page?(user_path(photo.owner.username)) %>
+  <div class="icon-link text-primary">
+    <i class="fa-solid fa-thumbtack"></i>
+    Pinned
+  </div>
+<% end %>
+```
+
+We only show the "Pinned" badge when we're on the owner's profile page. The `current_page?` helper checks whether the current URL matches the given path. This way, pinned photos get a visual indicator on profile pages but not on the feed or discover pages.
+
+### Owner info and follow button
+
+The top of the card shows the photo owner's avatar, username, and a follow/unfollow button. We reuse the `follow_requests/follow_unfollow` partial (which we'll create shortly) and pass `current_user` as the `sender` and `photo.owner` as the `recipient`.
+
+### Image and likes count
+
+The photo itself uses `img-fluid w-100` to fill the card width responsively. Below it, the likes count links to the photo's likes page (the nested route `/photos/:id/likes`), and the `pluralize` helper outputs "1 like" or "3 likes" as appropriate.
+
+### Action buttons
+
+On the left side, we render the like button (a separate partial) and a comment icon linking to the photo's show page. On the right side, a Bootstrap dropdown menu with three options:
+
+- **Edit** — links to the edit page
+- **Delete** — sends a DELETE request via `button_to`
+- **Pin/Un-pin** — sends a PATCH request that toggles the `pinned` boolean. Notice `params: { photo: { pinned: !photo.pinned } }` — this flips the current value.
+
+### Caption and comments
+
+The caption area shows the owner's display name, username, a relative timestamp (via `time_ago_in_words`), and the caption text. Below that, we render all comments using `render photo.comments.default_order` (which uses the `default_order` scope from Part 2 to show oldest-first), followed by a comment form for adding a new comment.
+
+<aside markdown="1">
+Notice that `render photo.comments.default_order` uses Rails' convention: when you pass an ActiveRecord collection to `render`, Rails automatically looks for a partial named after the model (`comments/_comment.html.erb`) and renders it once for each record, passing the local variable `comment`. This is equivalent to `render partial: "comments/comment", collection: photo.comments.default_order`.
+</aside>
+
+Now would be a good time for a commit — but first we need to create the partials that this photo card depends on. Let's keep going.
+
+## Like/unlike partial
+
+The like button toggles between a solid heart (already liked) and an outline heart (not yet liked). Create `app/views/photos/_likes.html.erb`:
+
+```erb
+<div>
+  <% like = current_user.likes.find_by(photo: photo) %>
+  <% if like %>
+    <%= button_to like, method: :delete, class: "btn btn-link icon-link text-decoration-none" do %>
+      <i class="fa-solid fa-heart"></i>
+      <%= pluralize(photo.likes_count, "like") %>
+    <% end %>
+  <% else %>
+    <%= render "likes/form", like: photo.likes.build(fan: current_user) %>
+  <% end %>
+</div>
+```
+{: filename="app/views/photos/_likes.html.erb" }
+
+The logic is straightforward:
+
+1. Look up whether the current user already has a like for this photo.
+2. If they do, show a **solid heart** (`fa-solid fa-heart`) with a `button_to` that sends a DELETE request to destroy the like (un-like).
+3. If they don't, render the like form with an **outline heart** that creates a new like when clicked.
+
+### Like form partial
+
+Replace the scaffold-generated `app/views/likes/_form.html.erb`:
+
+```erb
+<%= form_with(model: like) do |form| %>
+  <%= form.hidden_field :photo_id %>
+
+  <%= form.button class: "btn btn-link icon-link text-decoration-none" do %>
+    <i class="fa-regular fa-heart"></i>
+    <%= pluralize(like.photo.likes_count, "like") %>
+  <% end %>
+<% end %>
+```
+{: filename="app/views/likes/_form.html.erb" }
+
+The `photo_id` is passed as a hidden field so the `LikesController#create` action knows which photo to like. We use `form.button ... do ... end` (block form) to include both the Font Awesome icon and the count text inside the button.
+
+### Like partial (for likes index page)
+
+Replace the scaffold-generated `app/views/likes/_like.html.erb`:
+
+```erb
+<div id="<%= dom_id(like) %>">
+  <div class="d-flex">
+    <div class="flex-shrink-0">
+      <%= image_tag like.fan.avatar_image, class: "rounded-circle img-small" %>
+    </div>
+    <div class="flex-grow-1 ms-3">
+      <div class="d-flex justify-content-between">
+
+        <div class="">
+          <%= like.fan.display_name %>
+          <div class="fw-lighter">
+            @<%= like.fan.username %>
+          </div>
+        </div>
+
+        <%= render "follow_requests/follow_unfollow", sender: current_user, recipient: like.fan %>
+      </div>
+
+      <p class="mb-0">
+        <%= like.fan.bio %>
+      </p>
+
+    </div>
+  </div>
+</div>
+```
+{: filename="app/views/likes/_like.html.erb" }
+
+This partial is used on the "liked by" page (`/photos/:id/likes`) to show each user who liked a photo. It uses the Bootstrap media object pattern: a flex container with the avatar on the left and the user's info on the right, including a follow/unfollow button.
+
+## Comment partial
+
+Each comment renders with the author's avatar, display name, username, time, comment body, and a dropdown for edit/delete. Replace the scaffold-generated `app/views/comments/_comment.html.erb`:
+
+```erb
+<li id="<%= dom_id(comment) %>" class="list-group-item">
+  <div class="p-3 pb-0">
+    <div class="d-flex">
+      <div class="flex-shrink-0">
+        <%= image_tag comment.author.avatar_image, class: "rounded-circle img-small" %>
+      </div>
+      <div class="flex-grow-1 ms-3">
+        <h6>
+          <%= link_to user_path(comment.author.username), class: "text-decoration-none" do %>
+            <%= comment.author.display_name %>
+            <span class="fw-lighter text-body">
+              @<%= comment.author.username %>
+            </span>
+          <% end %>
+          &middot;
+          <%= time_ago_in_words(comment.created_at) %>
+        </h6>
+        <p class="mb-0">
+          <%= comment.body %>
+        </p>
+
+        <div class="d-flex justify-content-end">
+          <div class="dropdown">
+            <%= button_tag class: "btn btn-link text-decoration-none",
+            data: {bs_toggle: "dropdown"},
+            aria: { expanded: false } do %>
+              <i class="fa-solid fa-ellipsis"></i>
+            <% end %>
+            <ul class="dropdown-menu">
+              <li>
+                <%= link_to edit_comment_path(comment), class: "dropdown-item" do %>
+                  Edit
+                <% end %>
+              </li>
+              <li>
+                <%= button_to comment_path(comment), method: :delete, class: "dropdown-item" do %>
+                  Delete
+                <% end %>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</li>
+```
+{: filename="app/views/comments/_comment.html.erb" }
+
+This uses the same Bootstrap flex media object pattern. The dropdown menu at the bottom-right gives the user Edit and Delete options. Notice that the `<li>` uses `dom_id(comment)` (e.g., `comment_42`) as its HTML id — this is important for Capybara tests that use `within("#comment_42")` to scope actions to a specific comment.
+
+## Comment form
+
+Replace the scaffold-generated `app/views/comments/_form.html.erb`:
+
+```erb
+<%= form_with(model: comment) do |form| %>
+  <%= form.hidden_field :photo_id %>
+
+  <div class="form-group">
+    <%= form.label :body, class: "visually-hidden" %>
+    <%= form.text_area :body, class: "form-control" %>
+  </div>
+
+  <div class="d-grid gap-2 mb-3">
+    <%= form.submit class: "btn btn-primary" %>
+  </div>
+<% end %>
+```
+{: filename="app/views/comments/_form.html.erb" }
+
+We hide the `photo_id` in a hidden field (it's auto-filled from the photo the comment belongs to) and hide the label with `visually-hidden` (still accessible to screen readers, but not visible). The form is clean: just a text area and a submit button.
+
+Now let's commit all the partials we've created so far:
+
+```
+git add -A
+git commit -m "added photo card, like, comment partials and forms"
+```
+
+## Follow/unfollow partial
+
+This partial handles three states for the relationship between two users:
+
+1. **Following** — the sender already follows the recipient (accepted follow request)
+2. **Requested** — the sender has sent a pending follow request
+3. **Follow** — no follow request exists yet
+
+Create `app/views/follow_requests/_follow_unfollow.html.erb`:
+
+```erb
+<div>
+  <% unless sender == recipient %>
+    <% follow_request = sender.sent_follow_requests.find_by(recipient: recipient) %>
+
+    <% if follow_request %>
+      <% if follow_request.pending? %>
+        <%= button_to follow_request, method: :delete, class: "btn btn-primary rounded-pill icon-link" do %>
+          <i class="fa-solid fa-envelope"></i>
+          Requested
+        <% end %>
+      <% elsif follow_request.accepted? %>
+        <%= button_to follow_request, method: :delete, class: "btn btn-primary rounded-pill icon-link" do %>
+          <i class="fa-solid fa-check"></i>
+          Following
+        <% end %>
+      <% end %>
+    <% else %>
+      <%= render "follow_requests/form", follow_request: recipient.received_follow_requests.build %>
+    <% end %>
+  <% end %>
+</div>
+```
+{: filename="app/views/follow_requests/_follow_unfollow.html.erb" }
+
+Let's walk through this logic:
+
+- First, `unless sender == recipient` — you shouldn't see a follow button on your own profile!
+- We look up whether the sender has an existing follow request for this recipient using `find_by`.
+- If a request exists and is `pending?` (from our enum), we show a "Requested" button with an envelope icon. Clicking it sends a DELETE request to cancel the follow request.
+- If a request exists and is `accepted?`, we show a "Following" button with a check icon. Clicking it sends a DELETE request to unfollow.
+- If no request exists, we render the follow request form, which shows a "Follow" button.
+
+The `pending?` and `accepted?` methods come for free from our `enum :status` declaration on the FollowRequest model in Part 2.
+
+### Follow request form
+
+Replace the scaffold-generated `app/views/follow_requests/_form.html.erb`:
+
+```erb
+<%= form_with(model: follow_request) do |form| %>
+  <%= form.hidden_field :recipient_id %>
+
+  <div>
+    <%= form.button class: "btn btn-primary rounded-pill icon-link" do %>
+      <% if follow_request.persisted? %>
+        Following
+      <% else %>
+        <i class="fa-solid fa-plus"></i>
+        Follow
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
+```
+{: filename="app/views/follow_requests/_form.html.erb" }
+
+We use `form.button ... do ... end` (block form) to include both the Font Awesome icon and the text inside the button. The `persisted?` check differentiates between an existing follow request and a new one being built.
+
+Recall from Part 3 that our `FollowRequestsController#create` action auto-accepts the request if the recipient's account is public. So clicking "Follow" on a public account will immediately change to "Following" on the next page load.
+
+Commit:
+
+```
+git add -A
+git commit -m "added follow/unfollow partial and form"
+```
+
+## User profile page
+
+Now we're ready to build the centerpiece of the app — the user profile page. This is where everything comes together: the banner image, avatar, display name, stats, follow button, and a tabbed interface showing the user's posts and liked photos.
+
+The route and controller action were set up in Part 3. The route `get ":username" => "users#show", as: :user` maps URLs like `/alice` to the `UsersController#show` action, which uses `find_by!(username: params[:username])` to look up the user.
+
+Create `app/views/users/show.html.erb`:
 
 ```erb
 <% content_for :title, "@#{@user.username}'s profile" %>
 
-<div class="p-5 mb-4 bg-body-tertiary img-cover"
-  style="<%= "background-image: url('#{url_for(@user.profile_banner)}')" if @user.profile_banner.attached? %>">
+<div class="p-5 mb-4 bg-body-tertiary img-cover" style="<%= "background-image: url('#{url_for(@user.profile_banner)}')" if @user.profile_banner.attached? %>">
   <div class="container-fluid py-5">
   </div>
 </div>
 
-<%= image_tag @user.avatar_image,
-  class: "me-3 rounded-circle img-cover img-medium border border-light border-3",
-  style: "margin-top: -6rem;" %>
+<%= image_tag @user.avatar_image, class: "me-3 rounded-circle img-cover img-medium border border-light border-3", style: "margin-top: -6rem;" %>
 
-<h1 class="d-flex justify-content-between">
-  <%= @user.display_name || @user.username %>
-</h1>
-<h4>
-  @<%= @user.username %>
-</h4>
-```
-{: filename="app/views/users/show.html.erb" }
-
-There are several things to note here:
-
-- We use `content_for :title` to set the page title in the browser tab.
-- The profile banner uses a `div` with a `background-image` CSS property, but only if the user has a `profile_banner` attached. We use `url_for()` to generate the URL for the Active Storage attachment.
-- We don't need to check `attached?` for the avatar because the `set_default_avatar` callback in the User model ensures every user always has an avatar.
-- The `style: "margin-top: -6rem;"` pulls the avatar up to overlap with the banner area.
-- We display `display_name` if present, otherwise fall back to `username`.
-
-Refresh `/alice` and see how it looks. You should see the profile banner and avatar from the sample data.
-
-## Private badge and follow button
-
-Next, let's add the private badge and follow/unfollow button:
-
-```erb{2-11}
 <h1 class="d-flex justify-content-between">
   <%= @user.display_name || @user.username %>
   <div class="d-flex justify-content-between">
@@ -203,17 +482,9 @@ Next, let's add the private badge and follow/unfollow button:
     <%= render "follow_requests/follow_unfollow", sender: current_user, recipient: @user %>
   </div>
 </h1>
-```
-{: filename="app/views/users/show.html.erb" }
-
-The follow/unfollow button is rendered from a partial, which we'll create shortly. For now, let's continue building the profile stats.
-
-## Profile stats: followers, following, pending, posts
-
-Below the username, we want to show counts for followers, following, pending requests, and posts. Each count links to a dedicated page:
-
-```erb
-<!-- ... after the username h4 ... -->
+<h4>
+  @<%= @user.username %>
+</h4>
 
 <span>
   <%= link_to followers_path(@user.username), class: "text-decoration-none" do %>
@@ -248,7 +519,7 @@ Below the username, we want to show counts for followers, following, pending req
 
 <span>
   <span class="text-primary fw-bold">
-    <%= @user.photos_count %>
+  <%= @user.photos_count %>
   </span>
   posts
 </span>
@@ -260,401 +531,21 @@ Below the username, we want to show counts for followers, following, pending req
 <%= link_to @user.website, @user.website, target: "_blank" %>
 
 <hr>
-```
-{: filename="app/views/users/show.html.erb" }
-
-A few things to point out:
-
-- We use `link_to ... do ... end` (block form) to wrap both the count and the label text inside a single link.
-- The `followers_path`, `follows_path`, and `pending_path` route helpers were defined in our routes file in Part 3.
-- The "pending" count only shows when the current user is viewing their _own_ profile and the account is private.
-- We use `@user.photos_count` (the counter cache column) instead of `@user.own_photos.count` to avoid an extra database query.
-- The bio and website are displayed below the stats.
-
-This is a good time to commit!
-
-```
-% git add -A
-% git commit -m "Added user profile header with stats"
-% git push
-```
-
-## Follow/unfollow partial
-
-Let's create the `follow_requests/_follow_unfollow.html.erb` partial that we're rendering on the profile page. This partial needs to handle three states:
-
-1. **Following** — the current user already follows this person (accepted follow request)
-2. **Requested** — the current user has sent a pending follow request
-3. **Follow** — no follow request exists yet
-
-```erb
-<div class="<%= dom_id(recipient, :follow_request) %>">
-  <% unless sender == recipient %>
-    <% follow_request = sender.sent_follow_requests.find_by(recipient: recipient) %>
-
-    <% if follow_request %>
-      <% if follow_request.pending? %>
-        <%= button_to follow_request, method: :delete,
-          class: "btn btn-primary rounded-pill icon-link" do %>
-          <i class="fa-solid fa-envelope"></i>
-          Requested
-        <% end %>
-      <% elsif follow_request.accepted? %>
-        <%= button_to follow_request, method: :delete,
-          class: "btn btn-primary rounded-pill icon-link" do %>
-          <i class="fa-solid fa-check"></i>
-          Following
-        <% end %>
-      <% end %>
-    <% else %>
-      <%= render "follow_requests/form",
-        follow_request: recipient.received_follow_requests.build %>
-    <% end %>
-  <% end %>
-</div>
-```
-{: filename="app/views/follow_requests/_follow_unfollow.html.erb" }
-
-Let's walk through this logic:
-
-- First, we check `unless sender == recipient` — you shouldn't see a follow button on your own profile!
-- We look up whether the sender has an existing follow request for this recipient.
-- If a request exists and is `pending?`, we show a "Requested" button that, when clicked, deletes the follow request (i.e., cancels the request).
-- If a request exists and is `accepted?`, we show a "Following" button that, when clicked, deletes the follow request (i.e., unfollows).
-- If no request exists, we render the follow request form, which will show a "Follow" button.
-
-The follow request form partial at `app/views/follow_requests/_form.html.erb` is straightforward:
-
-```erb
-<%= form_with(model: follow_request) do |form| %>
-  <%= form.hidden_field :recipient_id %>
-
-  <div>
-    <%= form.button class: "btn btn-primary rounded-pill icon-link" do %>
-      <i class="fa-solid fa-plus"></i>
-      Follow
-    <% end %>
-  </div>
-<% end %>
-```
-{: filename="app/views/follow_requests/_form.html.erb" }
-
-Note that we use `form.button ... do ... end` (block form) so we can include both the Font Awesome icon and the text inside the button.
-
-Recall from Part 3 that our `FollowRequestsController#create` action auto-accepts the request if the recipient's account is public. So clicking "Follow" on a public account will immediately change to "Following".
-
-Commit!
-
-```
-% git add -A
-% git commit -m "Added follow/unfollow partial"
-% git push
-```
-
-## Photo card partial
-
-Before we build the tabbed interface for the profile, let's create the photo card partial that will be reused across many pages. This partial renders a single photo with its owner, image, likes, comments, and action buttons.
-
-Create `app/views/photos/_photo.html.erb`:
-
-```erb
-<div id="<%= dom_id(photo) %>">
-  <% if photo.pinned? && current_page?(user_path(photo.owner.username)) %>
-    <div class="icon-link text-primary">
-      <i class="fa-solid fa-thumbtack"></i>
-      Pinned
-    </div>
-  <% end %>
-
-  <div class="h5 m-0 p-0 d-flex align-items-center justify-content-between mb-2">
-    <div class="d-flex">
-      <%= image_tag photo.owner.avatar_image,
-        class: "rounded-circle me-2 img-cover img-small" %>
-
-      <%= link_to photo.owner.username, user_path(photo.owner.username),
-        class: "text-body link-underline-secondary link-underline-opacity-0
-          link-underline-opacity-100-hover" %>
-    </div>
-    <%= render "follow_requests/follow_unfollow",
-      sender: current_user, recipient: photo.owner %>
-  </div>
-
-  <div>
-    <%= image_tag photo.image, class: "img-fluid w-100" %>
-  </div>
-
-  <div class="d-flex">
-    <%= link_to photo.likes_count, photo_likes_path(photo),
-      class: "link-primary text-decoration-none pe-1" %>
-    <span>
-      <%= "like".pluralize(photo.likes_count) %>
-    </span>
-  </div>
-
-  <div class="d-flex justify-content-between">
-    <div class="d-flex">
-      <%= render "photos/likes", photo: photo %>
-      <%= link_to photo_path(photo),
-        class: "btn btn-link icon-link text-decoration-none" do %>
-        <i class="fa-regular fa-comment"></i>
-        <%= photo.comments_count %>
-      <% end %>
-    </div>
-    <div class="d-flex">
-      <div class="dropdown">
-        <%= button_tag class: "btn btn-link text-decoration-none",
-          data: { bs_toggle: "dropdown" }, aria: { expanded: false } do %>
-          <i class="fa-solid fa-ellipsis"></i>
-        <% end %>
-        <ul class="dropdown-menu">
-          <li>
-            <%= link_to edit_photo_path(photo), class: "dropdown-item" do %>
-              Edit
-            <% end %>
-          </li>
-          <li>
-            <%= button_to photo_path(photo), method: :delete,
-              class: "dropdown-item" do %>
-              Delete
-            <% end %>
-          </li>
-          <li>
-            <%= button_to photo_path(photo), method: :patch,
-              class: "dropdown-item",
-              params: { photo: { pinned: !photo.pinned } } do %>
-              <%= photo.pinned? ? "Un-pin" : "Pin" %>
-            <% end %>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <p>
-    <%= link_to user_path(photo.owner.username), class: "text-decoration-none" do %>
-      <%= photo.owner.display_name %>
-      <span class="fw-lighter text-body">
-        @<%= photo.owner.username %>
-      </span>
-    <% end %>
-    <span class="fw-lighter">
-      &middot;
-      <%= time_ago_in_words(photo.created_at) %>
-    </span>
-    <p>
-      <%= photo.caption %>
-    </p>
-  </p>
-
-  <ul class="list-group list-group-flush">
-    <%= render photo.comments.default_order %>
-    <li class="list-group-item mt-2">
-      <%= render "comments/form", comment: photo.comments.build %>
-    </li>
-  </ul>
-</div>
-```
-{: filename="app/views/photos/_photo.html.erb" }
-
-There's a lot going on here! Let's break it down:
-
-- **Pinned indicator**: If the photo is pinned and we're on the owner's profile page, we show a thumbtack icon with "Pinned".
-- **Owner info**: The photo owner's avatar and username are shown at the top, along with a follow/unfollow button.
-- **Image**: The photo is rendered with Active Storage's `image_tag`. We don't need to check `attached?` because `validates :image, presence: true` ensures every photo has an image.
-- **Likes count**: A link showing the number of likes.
-- **Like button and comments count**: Rendered side by side. The like button uses a separate `photos/_likes` partial (more on this below). The comments count links to the photo's show page.
-- **Dropdown menu**: Instead of separate edit/delete icon buttons, we use a Bootstrap dropdown with an ellipsis (`...`) trigger. The dropdown contains Edit, Delete, and Pin/Un-pin options.
-- **Caption area**: Shows the owner's display name, username, time ago, and the caption.
-- **Comments**: Uses `render photo.comments.default_order` to render each comment with its own `_comment.html.erb` partial, followed by the comment form.
-
-## Like button partial
-
-The like button toggles between a solid heart (liked) and an outline heart (not yet liked). Create `app/views/photos/_likes.html.erb`:
-
-```erb
-<div id="<%= dom_id(photo, :likes) %>">
-  <% like = current_user.likes.find_by(photo: photo) %>
-  <% if like %>
-    <%= button_to like, method: :delete,
-      class: "btn btn-link icon-link text-decoration-none" do %>
-      <i class="fa-solid fa-heart"></i>
-      <%= pluralize(photo.likes_count, "like") %>
-    <% end %>
-  <% else %>
-    <%= render "likes/form", like: photo.likes.build(fan: current_user) %>
-  <% end %>
-</div>
-```
-{: filename="app/views/photos/_likes.html.erb" }
-
-And the likes form partial at `app/views/likes/_form.html.erb`:
-
-```erb
-<%= form_with(model: like) do |form| %>
-  <%= form.hidden_field :photo_id %>
-
-  <%= form.button class: "btn btn-link icon-link text-decoration-none" do %>
-    <i class="fa-regular fa-heart"></i>
-    <%= pluralize(like.photo.likes_count, "like") %>
-  <% end %>
-<% end %>
-```
-{: filename="app/views/likes/_form.html.erb" }
-
-The logic is:
-- If the current user already has a like for this photo, show a **solid heart** (`fa-solid fa-heart`) with a `button_to` that sends a DELETE request to destroy the like.
-- If not, show the like form with an **outline heart** (`fa-regular fa-heart`) that creates a new like when clicked.
-
-## Comment partial
-
-Each comment renders with the author's avatar, display name, username, body, and a dropdown for edit/delete. Create `app/views/comments/_comment.html.erb`:
-
-```erb
-<li id="<%= dom_id(comment) %>" class="list-group-item">
-  <div class="p-3 pb-0">
-    <div class="d-flex">
-      <div class="flex-shrink-0">
-        <%= image_tag comment.author.avatar_image,
-          class: "rounded-circle img-small" %>
-      </div>
-      <div class="flex-grow-1 ms-3">
-        <h6>
-          <%= link_to user_path(comment.author.username),
-            class: "text-decoration-none" do %>
-            <%= comment.author.display_name %>
-            <span class="fw-lighter text-body">
-              @<%= comment.author.username %>
-            </span>
-          <% end %>
-          &middot;
-          <%= time_ago_in_words(comment.created_at) %>
-        </h6>
-        <p id="<%= dom_id(comment, :body) %>" class="mb-0">
-          <%= comment.body %>
-        </p>
-
-        <div class="d-flex justify-content-end">
-          <div class="dropdown">
-            <%= button_tag class: "btn btn-link text-decoration-none",
-              data: { bs_toggle: "dropdown" },
-              aria: { expanded: false } do %>
-              <i class="fa-solid fa-ellipsis"></i>
-            <% end %>
-            <ul class="dropdown-menu">
-              <li>
-                <%= link_to edit_comment_path(comment),
-                  class: "dropdown-item" do %>
-                  Edit
-                <% end %>
-              </li>
-              <li>
-                <%= button_to comment_path(comment), method: :delete,
-                  class: "dropdown-item" do %>
-                  Delete
-                <% end %>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</li>
-```
-{: filename="app/views/comments/_comment.html.erb" }
-
-This uses the same Bootstrap flex pattern for a media object that we saw in the old lesson, but now includes a dropdown menu for edit/delete actions.
-
-## Comment form
-
-The comment form partial at `app/views/comments/_form.html.erb` is clean and simple:
-
-```erb
-<%= form_with(model: comment) do |form| %>
-  <%= form.hidden_field :photo_id %>
-
-  <div class="form-group">
-    <%= form.label :body, class: "visually-hidden" %>
-    <%= form.text_area :body, class: "form-control" %>
-  </div>
-
-  <div class="d-grid gap-2 mb-3">
-    <%= form.submit class: "btn btn-primary" %>
-  </div>
-<% end %>
-```
-{: filename="app/views/comments/_form.html.erb" }
-
-We've hidden the `:photo_id` (auto-filled from the photo the comment belongs to), hidden the label with `visually-hidden`, and kept just the text area and submit button.
-
-Now's a good time to commit.
-
-```
-% git add -A
-% git commit -m "Added photo card, like, and comment partials"
-% git push
-```
-
-## Tabbed interface
-
-Before we start on the tabbed interface, let's make a new branch (off of `rb-user-profile`) to work on:
-
-```
-% git status
-On branch rb-user-profile...
-
-% git checkout -b rb-tabbed-interface
-```
-
-Back in the live app, on the page `/alice` that we've been working on, we want tabs that say "Posts" and "Likes" to switch between the user's own photos and their liked photos — all on the _same page_ without navigating away.
-
-In the [Bootstrap tabs section](https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior), there's a "tabs" interface that uses JavaScript to toggle between content panes. This is different from the old lesson where we had separate pages for posts and liked photos — now we use Bootstrap 5 tabs to keep everything on one page.
-
-Let's add the tabs to the user profile, below the `<hr>`:
-
-```erb
-<!-- ... after the <hr> ... -->
 
 <ul class="nav nav-underline mb-3" id="myTab" role="tablist">
   <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="posts-tab"
-      data-bs-toggle="tab" data-bs-target="#posts-tab-pane"
-      type="button" role="tab"
-      aria-controls="posts-tab-pane" aria-selected="true">
-      Posts
-      <span class="badge text-bg-secondary"><%= @user.photos_count %></span>
-    </button>
+    <button class="nav-link active" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts-tab-pane" type="button" role="tab" aria-controls="posts-tab-pane" aria-selected="true">Posts <span class="badge text-bg-secondary"><%= @user.photos_count %></span></button>
   </li>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="likes-tab"
-      data-bs-toggle="tab" data-bs-target="#likes-tab-pane"
-      type="button" role="tab"
-      aria-controls="likes-tab-pane" aria-selected="false">
-      Likes
-      <span class="badge text-bg-secondary"><%= @user.likes_count %></span>
-    </button>
+    <button class="nav-link" id="likes-tab" data-bs-toggle="tab" data-bs-target="#likes-tab-pane" type="button" role="tab" aria-controls="likes-tab-pane" aria-selected="false">Likes <span class="badge text-bg-secondary"><%= @user.likes_count %></span></button>
   </li>
 </ul>
-```
-{: filename="app/views/users/show.html.erb" }
-
-These are `<button>` elements (not links!) with `data-bs-toggle="tab"` and `data-bs-target` attributes that tell Bootstrap which content pane to show. The "Posts" tab is `active` by default.
-
-Now let's add the tab content panes:
-
-```erb{1-20}
 <div class="tab-content" id="myTabContent">
-  <div class="tab-pane fade show active" id="posts-tab-pane"
-    role="tabpanel" aria-labelledby="posts-tab" tabindex="0">
+  <div class="tab-pane fade show active" id="posts-tab-pane" role="tabpanel" aria-labelledby="posts-tab" tabindex="0">
     <% if @user.photos_count.positive? %>
       <ul class="list-group list-group-flush">
-        <%= render partial: "photos/photo",
-          collection: @user.own_photos.pinned,
-          layout: "layouts/list_group" %>
-        <%= render partial: "photos/photo",
-          collection: @user.own_photos.unpinned,
-          layout: "layouts/list_group" %>
+        <%= render partial: "photos/photo", collection: @user.own_photos.pinned, layout: "layouts/list_group" %>
+        <%= render partial: "photos/photo", collection: @user.own_photos.unpinned, layout: "layouts/list_group" %>
       </ul>
     <% else %>
       <div class="fs-4 text-muted">
@@ -662,45 +553,83 @@ Now let's add the tab content panes:
       </div>
     <% end %>
   </div>
-  <div class="tab-pane fade" id="likes-tab-pane"
-    role="tabpanel" aria-labelledby="likes-tab" tabindex="0">
+  <div class="tab-pane fade" id="likes-tab-pane" role="tabpanel" aria-labelledby="likes-tab" tabindex="0">
     <ul class="list-group list-group-flush">
-      <%= render partial: "photos/photo",
-        collection: @user.liked_photos,
-        layout: "layouts/list_group" %>
+      <%= render partial: "photos/photo", collection: @user.liked_photos, layout: "layouts/list_group" %>
     </ul>
   </div>
 </div>
 ```
 {: filename="app/views/users/show.html.erb" }
 
-A few key things:
+This is a large file, so let's walk through each section.
 
-- The **Posts** tab pane has `show active` classes, making it visible by default.
-- We use `render partial: ... collection:` to efficiently render the partial for each photo in the collection.
-- For the Posts tab, we render **pinned photos first**, then **unpinned photos** — using the scopes we defined in Part 2.
-- The `layout: "layouts/list_group"` wraps each rendered photo in a `<li class="list-group-item">` element. You'll need to create `app/views/layouts/_list_group.html.erb`:
+### Profile banner and avatar
 
 ```erb
-<li class="list-group-item">
-  <%= yield %>
-</li>
-```
-{: filename="app/views/layouts/_list_group.html.erb" }
+<div class="p-5 mb-4 bg-body-tertiary img-cover"
+  style="<%= "background-image: url('#{url_for(@user.profile_banner)}')" if @user.profile_banner.attached? %>">
+  <div class="container-fluid py-5">
+  </div>
+</div>
 
-Try clicking the "Posts" and "Likes" tabs on `/alice` — the content should switch without a page reload! Commit!
+<%= image_tag @user.avatar_image,
+  class: "me-3 rounded-circle img-cover img-medium border border-light border-3",
+  style: "margin-top: -6rem;" %>
+```
+
+The profile banner uses a `div` with a CSS `background-image` property, but only if the user has a banner attached. We use `url_for()` to generate the Active Storage URL. If no banner is attached, the div shows the `bg-body-tertiary` background color as a placeholder.
+
+The avatar uses `image_tag` with our custom `img-cover img-medium` classes for consistent sizing. The `style: "margin-top: -6rem;"` pulls the avatar up to overlap with the banner area. We don't need to check `attached?` for the avatar because our `before_create :set_default_avatar` callback ensures every user always has one.
+
+### Display name, private badge, and follow button
+
+```erb
+<h1 class="d-flex justify-content-between">
+  <%= @user.display_name || @user.username %>
+  <div class="d-flex justify-content-between">
+    <% if @user.private %>
+      <span class="...">Private <i class="fa-solid fa-lock"></i></span>
+    <% end %>
+    <%= render "follow_requests/follow_unfollow", sender: current_user, recipient: @user %>
+  </div>
+</h1>
+```
+
+We display `display_name` if present, otherwise fall back to `username`. The private badge and follow/unfollow button sit on the right side of the `<h1>` using flexbox.
+
+### Profile stats
+
+The followers, following, pending, and posts counts each link to their respective pages (using the route helpers from Part 3). A few details to notice:
+
+- We use `link_to ... do ... end` (block form) to wrap both the count number and the label text inside a single link.
+- The "pending" count only shows when `current_user == @user && @user.private?` — you can only see your own pending requests, and only if your account is private.
+- We use `@user.photos_count` (the counter cache column) instead of `@user.own_photos.count` to avoid an extra database query.
+
+### Tabbed interface
+
+The tabs use [Bootstrap 5's JavaScript-powered tabs](https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior). The `<button>` elements have `data-bs-toggle="tab"` and `data-bs-target` attributes that tell Bootstrap which content pane to show when clicked. No custom JavaScript needed — Bootstrap handles it.
+
+In the **Posts** tab pane, we render pinned photos first, then unpinned photos. This uses the `pinned` and `unpinned` scopes we defined on the Photo model in Part 2. Each photo is wrapped in a list group item using our `layouts/list_group` layout partial.
+
+In the **Likes** tab pane, we render all of the user's liked photos using the `liked_photos` association.
+
+<aside markdown="1">
+The `render partial: ... collection: ... layout:` pattern is a powerful Rails feature. It renders the partial once for each item in the collection, wrapping each in the specified layout. The local variable name inside the partial is automatically derived from the partial name — so `photos/_photo.html.erb` receives `photo` as a local.
+</aside>
+
+Commit:
 
 ```
-% git add -A
-% git commit -m "Added tabbed interface for Posts and Likes"
-% git push
+git add -A
+git commit -m "built user profile page with tabbed interface"
 ```
 
 ## Feed and Discover pages
 
-The feed and discover pages are straightforward since they use the same photo card partial. The routes and controller actions were set up in Part 3. Let's build the view templates.
+The feed and discover pages are straightforward since they reuse the same photo card partial. The routes and controller actions were set up in Part 3 — `feed` shows photos from people you follow, and `discover` shows photos liked by people you follow.
 
-`app/views/users/feed.html.erb`:
+Create `app/views/users/feed.html.erb`:
 
 ```erb
 <% content_for :title, "Feed" %>
@@ -710,16 +639,13 @@ The feed and discover pages are straightforward since they use the same photo ca
 
 <div id="photos">
   <ul id="feed" class="list-group list-group-flush">
-    <%= render partial: "photos/photo",
-      collection: @photos,
-      layout: "layouts/list_group" %>
+    <%= render partial: "photos/photo", collection: @photos, layout: "layouts/list_group" %>
   </ul>
 </div>
-
 ```
 {: filename="app/views/users/feed.html.erb" }
 
-`app/views/users/discover.html.erb`:
+Create `app/views/users/discover.html.erb`:
 
 ```erb
 <% content_for :title, "Discover" %>
@@ -729,19 +655,16 @@ The feed and discover pages are straightforward since they use the same photo ca
 
 <div id="photos">
   <ul class="list-group list-group-flush">
-    <%= render partial: "photos/photo",
-      collection: @photos,
-      layout: "layouts/list_group" %>
+    <%= render partial: "photos/photo", collection: @photos, layout: "layouts/list_group" %>
   </ul>
 </div>
 ```
 {: filename="app/views/users/discover.html.erb" }
 
-Both pages are nearly identical — they render the photo card partial for each photo in `@photos`.
-
-Recall from Part 3 that the `UsersController` sets up `@photos` in these actions:
+Both pages are nearly identical — they render the photo card partial for each photo in `@photos`. The only difference is where `@photos` comes from:
 
 ```ruby
+# In UsersController
 def feed
   @photos = @user.feed
 end
@@ -752,57 +675,32 @@ end
 ```
 {: filename="app/controllers/users_controller.rb" }
 
-Commit!
+The `feed` association traverses User -> Leaders -> Own Photos, and `discover` traverses User -> Leaders -> Liked Photos. All that complex SQL is handled by the associations we defined in Part 2.
+
+Commit:
 
 ```
-% git add -A
-% git commit -m "Added feed and discover pages"
-% git push
+git add -A
+git commit -m "added feed and discover pages"
 ```
 
-## Followers, Following, and Pending pages
+## User list item partial
 
-In the target app, instead of Bootstrap modals, followers/following/pending are all dedicated pages with their own routes (set up in Part 3): `/:username/followers`, `/:username/follows`, and `/:username/pending`.
+Before we build the followers, following, and pending pages, let's create a reusable partial for displaying a user in a list. This partial will be used on all three pages and on the search results page.
 
-First, let's make sure the `UsersController` actions are in place:
-
-```ruby
-class UsersController < ApplicationController
-  before_action :set_user, only: %i[ show feed discover follows followers pending ]
-
-  # ...
-
-  def follows
-    @follows = @user.leaders
-  end
-
-  def followers
-    @followers = @user.followers
-  end
-
-  def pending
-    @pending = @user.pending_received_follow_requests
-  end
-
-  # ...
-end
-```
-{: filename="app/controllers/users_controller.rb" }
-
-Now let's create a reusable user list item partial at `app/views/users/_list_item.html.erb`:
+Create `app/views/users/_list_item.html.erb`:
 
 ```erb
 <li class="list-group-item list-group-action">
   <div class="d-flex">
     <div class="flex-shrink-0">
-      <%= image_tag user.avatar_image,
-        class: "rounded-circle img-small img-cover" %>
+      <%= image_tag user.avatar_image, class: "rounded-circle img-small img-cover" %>
     </div>
     <div class="flex-grow-1 ms-3">
       <div class="d-flex justify-content-between">
+
         <div class="">
-          <%= link_to user_path(user.username),
-            class: "text-decoration-none" do %>
+          <%= link_to user_path(user.username), class: "text-decoration-none" do %>
             <%= user.display_name %>
             <div class="fw-lighter text-body">
               @<%= user.username %>
@@ -810,22 +708,24 @@ Now let's create a reusable user list item partial at `app/views/users/_list_ite
           <% end %>
         </div>
 
-        <%= render "follow_requests/follow_unfollow",
-          sender: current_user, recipient: user %>
+        <%= render "follow_requests/follow_unfollow", sender: current_user, recipient: user %>
       </div>
 
       <p class="mb-0">
         <%= user.bio %>
       </p>
+
     </div>
   </div>
 </li>
 ```
 {: filename="app/views/users/_list_item.html.erb" }
 
-Each list item shows the user's avatar, display name, username, a follow/unfollow button, and their bio.
+This uses the Bootstrap flex media object pattern: avatar on the left, user info and follow button on the right, with the bio below. The display name links to the user's profile page using our vanity URL route.
 
-Now the **followers** page at `app/views/users/followers.html.erb`:
+## Followers page
+
+Create `app/views/users/followers.html.erb`:
 
 ```erb
 <% content_for :title, "Followers" %>
@@ -856,7 +756,11 @@ Now the **followers** page at `app/views/users/followers.html.erb`:
 ```
 {: filename="app/views/users/followers.html.erb" }
 
-The **following** page at `app/views/users/follows.html.erb`:
+The `link_to :back` generates a link to the previous page using the browser's referrer — a convenient Rails helper. Each follower is rendered using our `_list_item` partial, and we show a friendly message if the user has no followers.
+
+## Following page
+
+Create `app/views/users/follows.html.erb`:
 
 ```erb
 <% content_for :title, "Following" %>
@@ -887,7 +791,13 @@ The **following** page at `app/views/users/follows.html.erb`:
 ```
 {: filename="app/views/users/follows.html.erb" }
 
-And the **pending** page at `app/views/users/pending.html.erb`, which is more complex because it includes Accept and Reject buttons for each pending follow request:
+This follows the same pattern as the followers page but uses `@follows` (the user's leaders).
+
+## Pending page
+
+The pending page is more complex because it includes Accept and Reject buttons for each pending follow request. Unlike the followers and following pages that just list users, this page needs to iterate over follow requests (not users) so we can build forms to update each request's status.
+
+Create `app/views/users/pending.html.erb`:
 
 ```erb
 <% content_for :title, "Pending" %>
@@ -906,18 +816,15 @@ And the **pending** page at `app/views/users/pending.html.erb`, which is more co
   <ul class="list-group list-group-flush">
     <% @pending.each do |follow_request| %>
       <% user = follow_request.sender %>
-      <li id="<%= dom_id(follow_request, :pending) %>"
-        class="list-group-item list-group-action">
+      <li class="list-group-item list-group-action">
         <div class="d-flex">
           <div class="flex-shrink-0">
-            <%= image_tag user.avatar_image,
-              class: "rounded-circle img-small img-cover" %>
+            <%= image_tag user.avatar_image, class: "rounded-circle img-small img-cover" %>
           </div>
           <div class="flex-grow-1 ms-3">
             <div class="d-flex justify-content-between">
               <div class="">
-                <%= link_to user_path(user.username),
-                  class: "text-decoration-none" do %>
+                <%= link_to user_path(user.username), class: "text-decoration-none" do %>
                   <%= user.display_name %>
                   <div class="fw-lighter text-body">
                     @<%= user.username %>
@@ -929,10 +836,11 @@ And the **pending** page at `app/views/users/pending.html.erb`, which is more co
                 <%= form_with(model: follow_request) do |form| %>
                   <%= form.hidden_field :recipient_id %>
                   <%= form.hidden_field :status, value: "accepted" %>
+
                   <div>
                     <%= form.button class: "btn btn-primary rounded-pill icon-link" do %>
-                      <i class="fa-solid fa-check"></i>
-                      Accept
+                        <i class="fa-solid fa-check"></i>
+                        Accept
                     <% end %>
                   </div>
                 <% end %>
@@ -940,6 +848,7 @@ And the **pending** page at `app/views/users/pending.html.erb`, which is more co
                 <%= form_with(model: follow_request) do |form| %>
                   <%= form.hidden_field :recipient_id %>
                   <%= form.hidden_field :status, value: "rejected" %>
+
                   <div>
                     <%= form.button class: "btn btn-primary rounded-pill icon-link" do %>
                       <i class="fa-solid fa-times"></i>
@@ -954,6 +863,7 @@ And the **pending** page at `app/views/users/pending.html.erb`, which is more co
             <p class="mb-0">
               <%= user.bio %>
             </p>
+
           </div>
         </div>
       </li>
@@ -968,41 +878,139 @@ And the **pending** page at `app/views/users/pending.html.erb`, which is more co
 ```
 {: filename="app/views/users/pending.html.erb" }
 
-The pending page uses two separate `form_with` calls for each follow request — one to accept (setting `status` to `"accepted"`) and one to reject (setting `status` to `"rejected"`). Both forms submit a PATCH request to the `FollowRequestsController#update` action, which updates the status accordingly.
+The key thing here is the two `form_with` calls for each follow request. Both forms submit a PATCH request to `FollowRequestsController#update`, but they send different `status` values:
 
-Commit!
+- The **Accept** form sends `status: "accepted"`, which triggers the `FollowRequest` to be accepted.
+- The **Reject** form sends `status: "rejected"`, which rejects it.
+
+Each form includes `hidden_field :recipient_id` and `hidden_field :status` to pass the necessary data. The `FollowRequestsController#update` action (set up in Part 3) handles updating the status accordingly.
+
+<aside markdown="1">
+We can't reuse the `_list_item` partial here because we need the Accept/Reject buttons instead of the Follow/Unfollow button. When a partial doesn't quite fit, it's fine to inline the markup — don't force a partial to do something it wasn't designed for.
+</aside>
+
+Commit:
 
 ```
-% git add -A
-% git commit -m "Added followers, following, and pending pages"
-% git push
+git add -A
+git commit -m "added followers, following, and pending pages"
 ```
 
-## Finish on your own (with our solutions!)
+## User search results (index)
 
-We made it so far! To finish getting credit for the _Photogram Industrial_ series of lessons, get all of the remaining `grade` tests to pass. There's a lot to do, so be sure to **read all of the notes below** and visit [our pull request with UI solutions when you get stuck](https://github.com/appdev-projects/photogram-industrial/pull/4/files).
+The users index page displays search results. The `UsersController#index` action (from Part 3) uses Ransack to search by username. The view is simple since it reuses our `_list_item` partial.
 
-**Please use the solutions for the UI.** Since we don't provide much instruction here, **it's okay to copy-paste the code**, but just be sure to read it and understand what you are copying. If you have questions about what you see, ask! Before you start copy-pasting, read the notes below carefully.
+Create `app/views/users/index.html.erb`:
 
-A few notes on the `grade` tests:
+```erb
+<div>
+  <ul class="list-group list-group-flush">
+    <% @users.each do |user| %>
+      <%= render "users/list_item", user: user %>
+    <% end %>
+  </ul>
+</div>
+```
+{: filename="app/views/users/index.html.erb" }
 
-- You do not need to get every visual detail of your app to match the target to get the tests to pass. The `grade` tests are more concerned with functionality. Run the `grade` tests often, pick a failing test, and make that one work.
-- Again, don't worry about matching every visual detail, in the next project _Photogram Industrial Authorization_, the starting point code will be a complete (including all bootstrap UI) solution to the current target.
-- Read the next section on Devise view generation for some important fixes to get a number of `grade` tests to pass...
+This renders a list group of users. The Ransack search form in the sidebar (from the application layout in Part 3) submits to this page, and the `@users` variable contains the results.
 
-### Generate Devise views
+## Photo show and edit pages
 
-In order to customize the Devise views for sign in, sign up, and profile editing, you will need to [follow our Devise guide section on customizing Devise views](https://learn.firstdraft.com/lessons/195-authentication-with-devise#customizing-devise-views).
+Let's replace the scaffold-generated photo show and edit pages with cleaner versions.
 
-In our target, we've placed the Devise views in `app/views/users/` (since our Devise scope is `users`). The key files are:
+Replace `app/views/photos/show.html.erb`:
 
-- `app/views/users/sessions/new.html.erb` (Sign in form)
-- `app/views/users/registrations/new.html.erb` (Sign up form)
-- `app/views/users/registrations/edit.html.erb` (Edit profile form)
+```erb
+<div class="fs-5 border-bottom mb-2">
+  <%= link_to :back, class: "text-decoration-none icon-link" do %>
+    <i class="fa-solid fa-arrow-left"></i>
+    Back
+  <% end %>
+</div>
 
-#### Sign in view
+<%= render @photo %>
+```
+{: filename="app/views/photos/show.html.erb" }
 
-The sign in page is simple — make sure the submit button says "Sign in" (not "Log in", which is Devise's default):
+This is beautifully simple. The `render @photo` line uses Rails' convention to automatically look for `photos/_photo.html.erb` and render it with `photo: @photo`. All the complexity lives in the partial.
+
+Replace `app/views/photos/edit.html.erb`:
+
+```erb
+<% content_for :title, "Editing photo" %>
+
+<h1>Editing photo</h1>
+
+<%= render "form", photo: @photo %>
+
+<br>
+
+<div>
+  <%= link_to "Back", :back %>
+</div>
+```
+{: filename="app/views/photos/edit.html.erb" }
+
+## Photo likes page
+
+When a user clicks on the likes count on a photo, they see a list of all users who liked that photo. This uses the nested route `/photos/:photo_id/likes`.
+
+Create `app/views/photos/likes.html.erb`:
+
+```erb
+<% content_for :title, "Liked by" %>
+
+<h1>Liked by</h1>
+<small><%= pluralize(@photo.likes_count, "like") %></small>
+<hr>
+<%= link_to "back", @photo %>
+<div>
+  <ul class="list-group list-group-flush mb-5">
+    <% @likes.each do |like| %>
+      <li class="list-group-item list-group-action">
+        <%= render like %>
+      </li>
+    <% end %>
+  </ul>
+</div>
+```
+{: filename="app/views/photos/likes.html.erb" }
+
+Each like is rendered using the `likes/_like.html.erb` partial we created earlier, which shows the fan's avatar, display name, username, bio, and a follow/unfollow button.
+
+Commit:
+
+```
+git add -A
+git commit -m "added photo show, edit, and likes pages"
+```
+
+## Customizing Devise views
+
+Up until now, we've been using Devise's built-in views for sign in, sign up, and profile editing. These work but look plain. To customize them, we need to generate the Devise view files into our project so we can edit them.
+
+Run the Devise view generator:
+
+```
+rails generate devise:views users
+```
+
+<aside markdown="1">
+We pass `users` because that's our Devise scope. This places the generated views in `app/views/users/` (e.g., `app/views/users/sessions/new.html.erb`, `app/views/users/registrations/new.html.erb`). If you just ran `rails generate devise:views` without specifying the scope, the views would go into `app/views/devise/`, which works but doesn't match our convention.
+</aside>
+
+This generates several files. The three we care about are:
+
+- `app/views/users/sessions/new.html.erb` — the sign in form
+- `app/views/users/registrations/new.html.erb` — the sign up form
+- `app/views/users/registrations/edit.html.erb` — the settings/profile edit form
+
+Let's customize each one.
+
+### Sign in view
+
+The default Devise sign in page has a "Log in" heading and button. Our tests expect "Sign in" instead. Open the generated file and replace it:
 
 ```erb
 <h2>Sign in</h2>
@@ -1012,14 +1020,12 @@ The sign in page is simple — make sure the submit button says "Sign in" (not "
 
   <div class="form-group">
     <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email",
-      class: "form-control" %>
+    <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control" %>
   </div>
 
   <div class="form-group">
     <%= f.label :password %><br />
-    <%= f.password_field :password, autocomplete: "current-password",
-      class: "form-control" %>
+    <%= f.password_field :password, autocomplete: "current-password", class: "form-control" %>
   </div>
 
   <% if devise_mapping.rememberable? %>
@@ -1039,9 +1045,11 @@ The sign in page is simple — make sure the submit button says "Sign in" (not "
 ```
 {: filename="app/views/users/sessions/new.html.erb" }
 
-#### Sign up view
+The main changes from the default: we changed "Log in" to "Sign in" in both the heading and submit button, added `class: "form-control"` to inputs for Bootstrap styling, and added `class: "btn btn-primary"` to the submit button.
 
-The sign up view needs fields for `display_name` and `username` in addition to the standard Devise fields:
+### Sign up view
+
+The sign up form needs two additional fields that Devise doesn't include by default: `display_name` and `username`. Remember, we already permitted these parameters in `ApplicationController` in Part 3 via `configure_permitted_parameters`.
 
 ```erb
 <h2>Sign up</h2>
@@ -1051,8 +1059,7 @@ The sign up view needs fields for `display_name` and `username` in addition to t
 
   <div class="form-group">
     <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email",
-      class: "form-control" %>
+    <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control" %>
   </div>
 
   <div class="form-group">
@@ -1070,14 +1077,12 @@ The sign up view needs fields for `display_name` and `username` in addition to t
     <% if @minimum_password_length %>
     <em>(<%= @minimum_password_length %> characters minimum)</em>
     <% end %><br />
-    <%= f.password_field :password, autocomplete: "new-password",
-      class: "form-control" %>
+    <%= f.password_field :password, autocomplete: "new-password", class: "form-control" %>
   </div>
 
   <div class="form-group">
     <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password",
-      class: "form-control" %>
+    <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control" %>
   </div>
 
   <div class="mt-2 actions d-grid gap-2">
@@ -1089,73 +1094,411 @@ The sign up view needs fields for `display_name` and `username` in addition to t
 ```
 {: filename="app/views/users/registrations/new.html.erb" }
 
-Note the `display_name` and `username` fields are included — and these are already permitted through the `configure_permitted_parameters` method we set up in `ApplicationController` in Part 3.
+The key additions are the `display_name` and `username` fields between the email and password fields. These are already permitted through the `configure_permitted_parameters` method we set up in `ApplicationController` in Part 3, so they'll be saved when the form is submitted.
 
-#### Edit profile view
+### Settings / profile edit view
 
-The edit profile form is the most complex Devise view. It needs fields for `current_password`, `email`, `password` (change), `username`, `display_name`, `avatar_image`, `profile_banner`, `bio`, `private`, and `website`. The target includes validation feedback (showing `is-valid` or `is-invalid` classes).
+The edit profile form is the most complex Devise view. It needs fields for changing the password, updating profile information (username, display name, bio, website, private toggle), and uploading images (avatar, profile banner). It also includes Bootstrap validation feedback that shows green/red borders on fields after a failed submission.
 
-Since this is a large form, we recommend copying the code from the solution pull request. The key things to note:
+Replace the generated `app/views/users/registrations/edit.html.erb` with:
 
-- Use `f.file_field :avatar_image` and `f.file_field :profile_banner` for Active Storage file uploads.
-- Use `f.check_box :private` for the private account toggle.
-- Use `f.text_field :website` for the website URL.
+```erb
+<h2>Edit <%= resource_name.to_s.humanize %></h2>
 
-### Additional hints
+<div class="card-body">
+  <% was_validated = resource.errors.any? %>
 
-Aside from the Devise view generation, here are some additional hints to help you get the tests to pass:
+  <% form_html_options = { method: :put, novalidate: true, class: "mb-3" } %>
 
-(But do use [the solutions](https://github.com/appdev-projects/photogram-industrial/pull/4/files) if you get stuck!)
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: form_html_options) do |f| %>
 
-#### Your final `config/routes.rb` file
+    <div class="form-group">
+      <% current_password_was_invalid = resource.errors.include?(:current_password) %>
 
-The final set of routes to work towards is:
+      <% current_password_class = "form-control" %>
 
-```rb
-Rails.application.routes.draw do
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
-  get "up" => "rails/health#show", as: :rails_health_check
+      <% if was_validated %>
+        <% if current_password_was_invalid %>
+          <% current_password_class << " is-invalid" %>
+        <% else %>
+          <% current_password_class << " is-valid" %>
+        <% end %>
+      <% end %>
 
-  root "users#feed"
+      <%= f.label :current_password %>
 
-  devise_for :users
+      <%= f.password_field :current_password, class: current_password_class, autocomplete: "off" %>
 
-  resources :comments
-  resources :follow_requests
-  resources :likes
-  resources :photos do
-    resources :comments, only: [:index]
-    resources :likes, only: [:index]
-  end
-  resources :users, only: [ :index ]
+      <% if current_password_was_invalid %>
+        <% resource.errors.full_messages_for(:current_password).each do |message| %>
+          <div class="invalid-feedback d-flex">
+            <%= message %>
+          </div>
+        <% end %>
+      <% end %>
 
-  get ":username" => "users#show", as: :user
-  get ":username/feed" => "users#feed", as: :feed
-  get ":username/followers" => "users#followers", as: :followers
-  get ":username/follows" => "users#follows", as: :follows
-  get ":username/pending" => "users#pending", as: :pending
-  get ":username/discover" => "users#discover", as: :discover
-end
+      <small class="form-text text-muted">
+        We need your current password to confirm any changes.
+      </small>
+    </div>
+
+    <hr class="mt-4">
+
+    <div class="form-group">
+      <% email_was_invalid = resource.errors.include?(:email) %>
+
+      <% email_class = "form-control" %>
+
+      <% if was_validated %>
+        <% if email_was_invalid %>
+          <% email_class << " is-invalid" %>
+        <% else %>
+          <% email_class << " is-valid" %>
+        <% end %>
+      <% end %>
+
+      <%= f.label :email %>
+
+      <%= f.email_field :email, autofocus: true, class: email_class %>
+
+      <% if email_was_invalid %>
+        <% resource.errors.full_messages_for(:email).each do |message| %>
+          <div class="invalid-feedback d-flex">
+            <%= message %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <hr class="mt-4">
+
+    <div class="form-group">
+      <% password_was_invalid = resource.errors.include?(:password) %>
+
+      <% password_class = "form-control" %>
+
+      <% if was_validated %>
+        <% if password_was_invalid %>
+          <% password_class << " is-invalid" %>
+        <% else %>
+          <% password_class << " is-valid" %>
+        <% end %>
+      <% end %>
+
+      <%= f.label :password %>
+
+      <%= f.password_field :password, class: password_class, autocomplete: "off" %>
+
+      <% if password_was_invalid %>
+        <% resource.errors.full_messages_for(:password).each do |message| %>
+          <div class="invalid-feedback d-flex">
+            <%= message %>
+          </div>
+        <% end %>
+      <% end %>
+
+      <small class="form-text text-muted">
+        Leave blank if you don't want to change it.
+
+        <% if @minimum_password_length %>
+          <%= @minimum_password_length %> characters minimum.
+        <% end %>
+      </small>
+    </div>
+
+    <div class="form-group">
+      <% password_confirmation_was_invalid = resource.errors.include?(:password_confirmation) %>
+
+      <% password_confirmation_class = "form-control" %>
+
+      <% if was_validated %>
+        <% if password_confirmation_was_invalid %>
+          <% password_confirmation_class << " is-invalid" %>
+        <% else %>
+          <% password_confirmation_class << " is-valid" %>
+        <% end %>
+      <% end %>
+
+      <%= f.label :password_confirmation %>
+
+      <%= f.password_field :password_confirmation, class: password_confirmation_class, autocomplete: "off" %>
+
+      <% if password_confirmation_was_invalid %>
+        <% resource.errors.full_messages_for(:password_confirmation).each do |message| %>
+          <div class="invalid-feedback d-flex">
+            <%= message %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <hr class="mt-4">
+
+    <div class="form-group">
+      <% username_was_invalid = resource.errors.include?(:username) %>
+
+      <% username_class = "form-control" %>
+
+      <% if was_validated %>
+        <% if username_was_invalid %>
+          <% username_class << " is-invalid" %>
+        <% else %>
+          <% username_class << " is-valid" %>
+        <% end %>
+      <% end %>
+
+      <%= f.label :username %>
+
+      <%= f.text_field :username, :class => username_class, :placeholder => "Enter username" %>
+
+      <% if username_was_invalid %>
+        <% resource.errors.full_messages_for(:username).each do |message| %>
+          <div class="invalid-feedback d-flex">
+            <%= message %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="form-group">
+      <% display_name_was_invalid = resource.errors.include?(:display_name) %>
+
+      <% display_name_class = "form-control" %>
+
+      <% if was_validated %>
+        <% if display_name_was_invalid %>
+          <% display_name_class << " is-invalid" %>
+        <% else %>
+          <% display_name_class << " is-valid" %>
+        <% end %>
+      <% end %>
+
+      <%= f.label :display_name %>
+
+      <%= f.text_field :display_name, :class => display_name_class, :placeholder => "Enter display name" %>
+
+      <% if display_name_was_invalid %>
+        <% resource.errors.full_messages_for(:display_name).each do |message| %>
+          <div class="invalid-feedback d-flex">
+            <%= message %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="form-group">
+      <% avatar_image_was_invalid = resource.errors.include?(:avatar_image) %>
+
+      <% avatar_image_class = "form-control" %>
+
+      <% if was_validated %>
+        <% if avatar_image_was_invalid %>
+          <% avatar_image_class << " is-invalid" %>
+        <% else %>
+          <% avatar_image_class << " is-valid" %>
+        <% end %>
+      <% end %>
+
+      <%= f.label :avatar_image %>
+
+      <div>
+        <%= image_tag current_user.avatar_image, class: "img-cover img-large rounded-circle mb-2" %>
+
+        <%= f.file_field :avatar_image, class: avatar_image_class, accept: "image/*" %>
+      </div>
+
+      <% if avatar_image_was_invalid %>
+        <% resource.errors.full_messages_for(:avatar_image).each do |message| %>
+          <div class="invalid-feedback d-flex">
+            <%= message %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="form-group">
+      <% profile_banner_was_invalid = resource.errors.include?(:profile_banner) %>
+
+      <% profile_banner_class = "form-control" %>
+
+      <% if was_validated %>
+        <% if profile_banner_was_invalid %>
+          <% profile_banner_class << " is-invalid" %>
+        <% else %>
+          <% profile_banner_class << " is-valid" %>
+        <% end %>
+      <% end %>
+
+      <%= f.label :profile_banner %>
+
+      <div>
+        <% if current_user.profile_banner.attached? %>
+          <%= image_tag current_user.profile_banner, class: "img-cover w-100 mb-2" %>
+        <% end %>
+
+        <%= f.file_field :profile_banner, class: profile_banner_class, accept: "image/*" %>
+      </div>
+
+      <% if resource.profile_banner.attached? %>
+        <div>
+          <%= f.check_box :remove_profile_banner %>
+          <%= f.label :remove_profile_banner, "Remove Profile Banner" %>
+        </div>
+      <% end %>
+
+      <% if profile_banner_was_invalid %>
+        <% resource.errors.full_messages_for(:profile_banner).each do |message| %>
+          <div class="invalid-feedback d-flex">
+            <%= message %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="form-group">
+      <% bio_was_invalid = resource.errors.include?(:bio) %>
+
+      <% bio_class = "form-control" %>
+
+      <% if was_validated %>
+        <% if bio_was_invalid %>
+          <% bio_class << " is-invalid" %>
+        <% else %>
+          <% bio_class << " is-valid" %>
+        <% end %>
+      <% end %>
+
+      <%= f.label :bio %>
+
+      <%= f.text_area :bio, :class => bio_class, :placeholder => "Enter bio" %>
+
+      <% if bio_was_invalid %>
+        <% resource.errors.full_messages_for(:bio).each do |message| %>
+          <div class="invalid-feedback d-flex">
+            <%= message %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="form-group">
+      <% private_was_invalid = resource.errors.include?(:private) %>
+
+      <% private_class = "custom-control-input" %>
+
+      <% if was_validated %>
+        <% if private_was_invalid %>
+          <% private_class << " is-invalid" %>
+        <% else %>
+          <% private_class << " is-valid" %>
+        <% end %>
+      <% end %>
+
+      <div class="custom-control custom-checkbox">
+        <%= f.check_box :private, class: "#{private_class}" %>
+        <%= f.label :private, class: "custom-control-label" %>
+      </div>
+
+      <% if private_was_invalid %>
+        <% resource.errors.full_messages_for(:private).each do |message| %>
+          <div class="invalid-feedback d-flex">
+            <%= message %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="form-group">
+      <% website_was_invalid = resource.errors.include?(:website) %>
+
+      <% website_class = "form-control" %>
+
+      <% if was_validated %>
+        <% if website_was_invalid %>
+          <% website_class << " is-invalid" %>
+        <% else %>
+          <% website_class << " is-valid" %>
+        <% end %>
+      <% end %>
+
+      <%= f.label :website %>
+
+      <%= f.text_field :website, :class => website_class, :placeholder => "Enter website" %>
+
+      <% if website_was_invalid %>
+        <% resource.errors.full_messages_for(:website).each do |message| %>
+          <div class="invalid-feedback d-flex">
+            <%= message %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="d-grid">
+      <%= f.submit "Update", class: "btn btn-outline-primary" %>
+    </div>
+  <% end %>
+
+    <div class="d-grid">
+      <%= link_to "Back", :back, class: "btn btn-outline-secondary" %>
+    </div>
+</div>
 ```
-{: filename="config/routes.rb" }
+{: filename="app/views/users/registrations/edit.html.erb" }
 
-The wildcard `:username` routes are at the bottom, and photos have nested resources for comments and likes.
+This is a large form, so let's understand the validation pattern it uses. Each field group follows the same structure:
 
-#### You do not need to implement username searching
+1. Check if this specific field had an error: `resource.errors.include?(:field_name)`
+2. Start with a base CSS class: `"form-control"`
+3. If the form was submitted and validation failed (`was_validated`), add either `is-invalid` or `is-valid` to the class string
+4. Render the field with the computed class
+5. If the field was invalid, display the error messages in a `div.invalid-feedback`
 
-In the target, we have implemented a search by username with the help of [ransack](https://activerecord-hackery.github.io/ransack/). Our graded tests do not check for this, so you can skip that implementation in your app.
+This pattern gives users immediate visual feedback — green borders on valid fields, red borders and error messages on invalid ones.
 
-#### Use `file_field` for image uploads
+<aside markdown="1">
+The `novalidate: true` in the form options disables the browser's built-in HTML5 validation. We do this because we want to use our own server-side validation with Bootstrap's styling instead of the browser's default (and inconsistent) validation popups.
+</aside>
 
-Now that you have Active Storage configured, in order to actually make forms accept a file, you will need to use `file_field` for photo images and user avatars, e.g.:
+A few other things to note about this form:
 
-```erb{1:(10-19)}
-<%= form.file_field :image %>
+- **Avatar image** uses `f.file_field :avatar_image` with a preview of the current avatar above it. The `accept: "image/*"` attribute restricts the file picker to image files only.
+- **Profile banner** includes a "Remove Profile Banner" checkbox that uses the `remove_profile_banner` virtual attribute we defined on the User model in Part 2. When checked and the form is submitted, the `after_save :purge_profile_banner` callback removes the banner from Cloudinary.
+- **Private** uses a checkbox to toggle the account's privacy setting.
+- **Current password** is required by Devise for any changes — this is a security feature to prevent unauthorized edits from hijacked sessions.
+
+Commit:
+
 ```
-{: filename="app/views/photos/_form.html.erb" }
+git add -A
+git commit -m "customized Devise views: sign in, sign up, and settings"
+```
 
-And the same for the `avatar_image` and `profile_banner` fields in the Devise edit view!
+## Finish it off
+
+We've built out the core views, but there may be some remaining details to polish before all the `rake grade` tests pass. Here are some hints:
+
+- Make sure the navbar in your application layout (from Part 3) has links for "Feed", "Discover", "Go to profile", "Settings" (`/users/edit`), and "Sign out" — the tests check for these.
+- Make sure the "Add photo" button in the sidebar opens the new photo form (via the Bootstrap modal from Part 3).
+- The photo form (`app/views/photos/_form.html.erb`) should use `form.file_field :image` for Active Storage uploads, not `form.text_field :image`.
+- Run `rake grade` often and read the failing test names carefully — they tell you exactly what's expected.
+
+If you get stuck, you can reference the target app at [pg-industrial.matchthetarget.com](https://pg-industrial.matchthetarget.com/) and look at [the solution pull request](https://github.com/appdev-projects/photogram-industrial/pull/4/files) for the complete code.
+
+<div class="alert alert-info">
+
+You do not need to get every visual detail of your app to match the target to get the `grade` tests to pass. The tests are more concerned with functionality — can you visit the right pages, see the right content, click the right buttons. Focus on making tests pass rather than pixel-perfect design. In the next project, _Photogram Industrial Authorization_, the starting point code will be a complete solution to the current target.
+</div>
+
+Now would be a good time for a final commit and push:
+
+```
+git add -A
+git commit -m "completed Part 4: profile page, views, and Devise customization"
+git push -u origin HEAD
+```
+
+Don't forget to open a pull request on GitHub for this branch!
 
 ---
 
@@ -1168,173 +1511,167 @@ And the same for the `avatar_image` and `profile_banner` fields in the Devise ed
 
 require "rails_helper"
 
-describe "/[USERNAME]/discover" do
-  it "can be visited", points: 1 do
-    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
-    sign_in(user)
-
-    visit "/#{user.username}/discover"
-
-    expect(page.status_code).to be(200)
+RSpec.describe Comment, type: :model do
+  describe "has a belongs_to association defined called 'author' with Class name 'User'", points: 1 do
+    it { should belong_to(:author).class_name("User") }
   end
 
-  it "shows photos liked by people the current user follows", points: 1 do
-    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
-    sign_in(user)
-
-    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev")
-    owner = User.create(username: "owner", email: "owner@example.com", password: "appdev", private: false)
-    photo = create_photo(owner: owner, caption: "owner caption")
-    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
-    Like.create(fan_id: leader.id, photo_id: photo.id)
-
-    visit "/#{user.username}/discover"
-
-    expect(page).to have_content(photo.caption)
+  describe "has a belongs_to association defined called 'photo'", points: 1 do
+    it { should belong_to(:photo) }
   end
-end
-
-def sign_in(user)
-  visit "/users/sign_in"
-
-  fill_in "Email", with: user.email
-  fill_in "Password", with: user.password
-  click_button "Sign in"
-end
-
-def create_photo(owner:, caption: "caption")
-  photo = Photo.new(caption: caption, owner_id: owner.id)
-  photo.image.attach(io: File.open(Rails.root.join("spec/support/test_image.jpeg")), filename: "test_image.jpeg", content_type: "image/jpeg")
-  photo.save!
-  photo
 end
 
 require "rails_helper"
 
-describe "/[USERNAME]/feed" do
-  it "can be visited", points: 1 do
-    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
-    sign_in(user)
-
-    visit "/#{user.username}/feed"
-
-    expect(page.status_code).to be(200)
+RSpec.describe FollowRequest, type: :model do
+  describe "has a belongs_to association defined called 'sender' with Class name 'User'", points: 1 do
+    it { should belong_to(:sender).class_name("User") }
   end
 
-  it "shows their leader's photos", points: 1 do
-    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
-    sign_in(user)
-
-    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev", private: false)
-    photo = create_photo(owner: leader, caption: "leader caption")
-    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
-
-    visit "/#{user.username}/feed"
-
-    expect(page).to have_content(photo.caption)
-    expect(page).to have_tag("img")
-  end
-
-  it "allows them to like their leader's photos", points: 1 do
-    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
-    sign_in(user)
-
-    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev", private: false)
-    photo = create_photo(owner: leader)
-    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
-
-    visit "/#{user.username}/feed"
-
-    click_on "0 likes"
-
-    expect(page).to have_tag("i", with: { class: ["fa-solid", "fa-heart"] })
-  end
-
-  it "allows them to un-like their leader's photos", points: 1 do
-    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
-    sign_in(user)
-
-    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev", private: false)
-    photo = create_photo(owner: leader)
-    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
-    Like.create(fan_id: user.id, photo_id: photo.id)
-
-    visit "/#{user.username}/feed"
-
-    click_on "1 like"
-
-    expect(page).to have_css("i.fa-regular.fa-heart")
-  end
-
-  it "allows the user to add a comment on their leader's photos", points: 1 do
-    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
-    sign_in(user)
-
-    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev", private: false)
-    photo = create_photo(owner: leader)
-    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
-
-    visit "/#{user.username}/feed"
-
-    fill_in "comment[body]", with: "New comment"
-    click_button "Create Comment"
-
-    expect(page).to have_content("New comment")
-  end
-
-  it "allows the user to delete their comment", points: 1 do
-    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
-    sign_in(user)
-
-    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev", private: false)
-    photo = create_photo(owner: leader)
-    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
-    comment = Comment.create(body: "New comment", author_id: user.id, photo_id: photo.id)
-
-    visit "/#{user.username}/feed"
-
-    within("#comment_#{comment.id}") do
-      click_on "Delete"
-    end
-
-    expect(page).not_to have_content("New comment")
-  end
-
-  it "allows the user to edit their comment", points: 1 do
-    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
-    sign_in(user)
-
-    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev", private: false)
-    photo = create_photo(owner: leader)
-    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
-    comment = Comment.create(body: "New comment", author_id: user.id, photo_id: photo.id)
-
-    visit "/#{user.username}/feed"
-
-    within("#comment_#{comment.id}") do
-      click_on "Edit"
-    end
-
-    fill_in "comment[body]", with: "Edited comment"
-    click_button "Update Comment"
-
-    expect(page).to have_content("Edited comment")
+  describe "has a belongs_to association defined called 'recipient' with Class name 'User'", points: 1 do
+    it { should belong_to(:recipient).class_name("User") }
   end
 end
 
-def sign_in(user)
-  visit "/users/sign_in"
+require "rails_helper"
 
-  fill_in "Email", with: user.email
-  fill_in "Password", with: user.password
-  click_button "Sign in"
+RSpec.describe Like, type: :model do
+  describe "has a belongs_to association defined called 'fan' with Class name 'User'", points: 1 do
+    it { should belong_to(:fan).class_name("User") }
+  end
 end
 
-def create_photo(owner:, caption: "caption")
-  photo = Photo.new(caption: caption, owner_id: owner.id)
-  photo.image.attach(io: File.open(Rails.root.join("spec/support/test_image.jpeg")), filename: "test_image.jpeg", content_type: "image/jpeg")
-  photo.save!
-  photo
+RSpec.describe Like, type: :model do
+  describe "has a belongs_to association defined called 'photo'", points: 1 do
+    it { should belong_to(:photo) }
+  end
+end
+
+require "rails_helper"
+
+RSpec.describe Photo, type: :model do
+  describe "has a belongs_to association defined called 'owner' with Class name 'User'", points: 1 do
+    it { should belong_to(:owner).class_name("User") }
+  end
+
+  describe "has a has_many association defined called 'comments'", points: 1 do
+    it { should have_many(:comments) }
+  end
+
+  describe "has a has_many association defined called 'likes'", points: 1 do
+    it { should have_many(:likes) }
+  end
+
+  describe "has a has_many (many-to_many) association defined called 'fans' through 'likes'", points: 1 do
+    it { should have_many(:fans).through(:likes) }
+  end
+end
+
+require "rails_helper"
+
+RSpec.describe User, type: :model do
+  describe "has a has_many association defined called 'comments' with Class name 'Comment' and foreign key 'author_id'", points: 1 do
+    it { should have_many(:comments).class_name("Comment").with_foreign_key("author_id") }
+  end
+
+  describe "has a has_many association defined called 'own_photos' with Class name 'Photo' and foreign key 'owner_id'", points: 1 do
+    it { should have_many(:own_photos).class_name("Photo").with_foreign_key("owner_id") }
+  end
+
+  describe "has a has_many association defined called 'likes' with Class name 'Like' and foreign key 'fan_id'", points: 1 do
+    it { should have_many(:likes).class_name("Like").with_foreign_key("fan_id") }
+  end
+
+  describe "has a has_many (many-to_many) association defined called 'liked_photos' through 'likes' and source 'photo'", points: 1 do
+    it { should have_many(:liked_photos).through(:likes).source(:photo) }
+  end
+
+  describe "has a has_many association defined called 'sent_follow_requests' with Class name 'FollowRequest' and foreign key 'sender_id'", points: 1 do
+    it { should have_many(:sent_follow_requests).class_name("FollowRequest").with_foreign_key("sender_id") }
+  end
+
+  describe "has a has_many association defined called 'received_follow_requests' with Class name 'FollowRequest' and foreign key 'recipient_id'", points: 1 do
+    it { should have_many(:received_follow_requests).class_name("FollowRequest").with_foreign_key("recipient_id") }
+  end
+
+  describe "has a has_many association defined called 'accepted_sent_follow_requests' with scope where 'status' is \"accepted\"", points: 1 do
+    it { should have_many(:accepted_sent_follow_requests).class_name("FollowRequest").with_foreign_key("sender_id").conditions(status: "accepted") }
+  end
+
+  describe "has a has_many association defined called 'accepted_received_follow_requests' with scope where 'status' is \"accepted\"", points: 1 do
+    it { should have_many(:accepted_received_follow_requests).class_name("FollowRequest").with_foreign_key("recipient_id").conditions(status: "accepted") }
+  end
+
+  describe "has a has_many (many-to_many) association defined called 'followers' through 'accepted_received_follow_requests' and source 'sender'", points: 1 do
+    it { should have_many(:followers).through(:accepted_received_follow_requests).source(:sender) }
+  end
+
+  describe "has a has_many (many-to_many) association defined called 'leaders' through 'accepted_sent_follow_requests' and source 'recipient'", points: 1 do
+    it { should have_many(:leaders).through(:accepted_sent_follow_requests).source(:recipient) }
+  end
+
+  describe "has a has_many (many-to_many) association defined called 'feed' through 'leaders' and source 'own_photos'", points: 1 do
+    it { should have_many(:feed).through(:leaders).source(:own_photos) }
+  end
+
+  describe "has a has_many (many-to_many) association defined called 'discover' through 'leaders' and source 'liked_photos'", points: 1 do
+    it { should have_many(:discover).through(:leaders).source(:liked_photos) }
+  end
+end
+
+require "rails_helper"
+
+describe "User authentication" do
+  it "displays a banner to sign in when trying to visit the homepage", points: 1 do
+    visit "/"
+
+    expect(page).to have_content("You need to sign in or sign up before continuing")
+  end
+
+  it "sends the user to the sign in page when trying to visit the homepage", points: 1 do
+    visit "/"
+
+    expect(page).to have_current_path("/users/sign_in")
+  end
+
+  it "allows new user sign ups", points: 1 do
+    visit "/users/sign_up"
+
+    fill_in "Email", with: "alice@example.com"
+    fill_in "Password", with: "appdev"
+    fill_in "Password confirmation", with: "appdev"
+    fill_in "Username", with: "alice"
+    click_button "Sign up"
+
+    expect(page).to have_content("Welcome! You have signed up successfully")
+  end
+
+  it "allows an existing user to sign in", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+
+    visit "/users/sign_in"
+
+    fill_in "Email", with: user.email
+    fill_in "Password", with: user.password
+    click_button "Sign in"
+
+    expect(page).to have_content("Signed in successfully")
+  end
+
+  it "allows a user to sign out", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+
+    visit "/users/sign_in"
+
+    fill_in "Email", with: user.email
+    fill_in "Password", with: user.password
+    click_button "Sign in"
+
+    click_on user.username
+    click_on "Sign out"
+
+    expect(page).to have_current_path("/users/sign_in")
+  end
 end
 
 require "rails_helper"
@@ -1541,6 +1878,63 @@ describe "/[USERNAME]" do
     expect(page.status_code).to be(200)
   end
 
+  it "displays the user's username", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
+
+    visit "/#{user.username}"
+
+    expect(page).to have_content("@#{user.username}")
+  end
+
+  it "has a link to followers page", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
+
+    visit "/#{user.username}"
+
+    expect(page).to have_link(nil, href: "/#{user.username}/followers")
+  end
+
+  it "has a link to following page", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
+
+    visit "/#{user.username}"
+
+    expect(page).to have_link(nil, href: "/#{user.username}/follows")
+  end
+
+  it "displays followers count", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
+
+    visit "/#{user.username}"
+
+    expect(page).to have_content("0")
+    expect(page).to have_content("followers")
+  end
+
+  it "displays following count", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
+
+    visit "/#{user.username}"
+
+    expect(page).to have_content("0")
+    expect(page).to have_content("following")
+  end
+
+  it "has a follow button for other users", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    other = User.create(username: "bob", email: "bob@example.com", password: "appdev")
+    sign_in(user)
+
+    visit "/#{other.username}"
+
+    expect(page).to have_button("Follow")
+  end
+
   it "has a Posts tab", points: 1 do
     user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
     sign_in(user)
@@ -1723,168 +2117,173 @@ end
 
 require "rails_helper"
 
-describe "User authentication" do
-  it "displays a banner to sign in when trying to visit the homepage", points: 1 do
-    visit "/"
-
-    expect(page).to have_content("You need to sign in or sign up before continuing")
-  end
-
-  it "sends the user to the sign in page when trying to visit the homepage", points: 1 do
-    visit "/"
-
-    expect(page).to have_current_path("/users/sign_in")
-  end
-
-  it "allows new user sign ups", points: 1 do
-    visit "/users/sign_up"
-
-    fill_in "Email", with: "alice@example.com"
-    fill_in "Password", with: "appdev"
-    fill_in "Password confirmation", with: "appdev"
-    fill_in "Username", with: "alice"
-    click_button "Sign up"
-
-    expect(page).to have_content("Welcome! You have signed up successfully")
-  end
-
-  it "allows an existing user to sign in", points: 1 do
+describe "/[USERNAME]/discover" do
+  it "can be visited", points: 1 do
     user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
 
-    visit "/users/sign_in"
+    visit "/#{user.username}/discover"
 
-    fill_in "Email", with: user.email
-    fill_in "Password", with: user.password
-    click_button "Sign in"
-
-    expect(page).to have_content("Signed in successfully")
+    expect(page.status_code).to be(200)
   end
 
-  it "allows a user to sign out", points: 1 do
+  it "shows photos liked by people the current user follows", points: 1 do
     user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
 
-    visit "/users/sign_in"
+    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev")
+    owner = User.create(username: "owner", email: "owner@example.com", password: "appdev", private: false)
+    photo = create_photo(owner: owner, caption: "owner caption")
+    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
+    Like.create(fan_id: leader.id, photo_id: photo.id)
 
-    fill_in "Email", with: user.email
-    fill_in "Password", with: user.password
-    click_button "Sign in"
+    visit "/#{user.username}/discover"
 
-    click_on user.username
-    click_on "Sign out"
-
-    expect(page).to have_current_path("/users/sign_in")
+    expect(page).to have_content(photo.caption)
   end
+end
+
+def sign_in(user)
+  visit "/users/sign_in"
+
+  fill_in "Email", with: user.email
+  fill_in "Password", with: user.password
+  click_button "Sign in"
+end
+
+def create_photo(owner:, caption: "caption")
+  photo = Photo.new(caption: caption, owner_id: owner.id)
+  photo.image.attach(io: File.open(Rails.root.join("spec/support/test_image.jpeg")), filename: "test_image.jpeg", content_type: "image/jpeg")
+  photo.save!
+  photo
 end
 
 require "rails_helper"
 
-RSpec.describe Comment, type: :model do
-  describe "has a belongs_to association defined called 'author' with Class name 'User'", points: 1 do
-    it { should belong_to(:author).class_name("User") }
+describe "/[USERNAME]/feed" do
+  it "can be visited", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
+
+    visit "/#{user.username}/feed"
+
+    expect(page.status_code).to be(200)
   end
 
-  describe "has a belongs_to association defined called 'photo'", points: 1 do
-    it { should belong_to(:photo) }
+  it "shows their leader's photos", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
+
+    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev", private: false)
+    photo = create_photo(owner: leader, caption: "leader caption")
+    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
+
+    visit "/#{user.username}/feed"
+
+    expect(page).to have_content(photo.caption)
+    expect(page).to have_tag("img")
+  end
+
+  it "allows them to like their leader's photos", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
+
+    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev", private: false)
+    photo = create_photo(owner: leader)
+    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
+
+    visit "/#{user.username}/feed"
+
+    click_on "0 likes"
+
+    expect(page).to have_tag("i", with: { class: ["fa-solid", "fa-heart"] })
+  end
+
+  it "allows them to un-like their leader's photos", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
+
+    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev", private: false)
+    photo = create_photo(owner: leader)
+    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
+    Like.create(fan_id: user.id, photo_id: photo.id)
+
+    visit "/#{user.username}/feed"
+
+    click_on "1 like"
+
+    expect(page).to have_css("i.fa-regular.fa-heart")
+  end
+
+  it "allows the user to add a comment on their leader's photos", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
+
+    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev", private: false)
+    photo = create_photo(owner: leader)
+    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
+
+    visit "/#{user.username}/feed"
+
+    fill_in "comment[body]", with: "New comment"
+    click_button "Create Comment"
+
+    expect(page).to have_content("New comment")
+  end
+
+  it "allows the user to delete their comment", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
+
+    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev", private: false)
+    photo = create_photo(owner: leader)
+    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
+    comment = Comment.create(body: "New comment", author_id: user.id, photo_id: photo.id)
+
+    visit "/#{user.username}/feed"
+
+    within("#comment_#{comment.id}") do
+      click_on "Delete"
+    end
+
+    expect(page).not_to have_content("New comment")
+  end
+
+  it "allows the user to edit their comment", points: 1 do
+    user = User.create(username: "alice", email: "alice@example.com", password: "appdev")
+    sign_in(user)
+
+    leader = User.create(username: "leader", email: "leader@example.com", password: "appdev", private: false)
+    photo = create_photo(owner: leader)
+    FollowRequest.create(sender_id: user.id, recipient_id: leader.id, status: "accepted")
+    comment = Comment.create(body: "New comment", author_id: user.id, photo_id: photo.id)
+
+    visit "/#{user.username}/feed"
+
+    within("#comment_#{comment.id}") do
+      click_on "Edit"
+    end
+
+    fill_in "comment[body]", with: "Edited comment"
+    click_button "Update Comment"
+
+    expect(page).to have_content("Edited comment")
   end
 end
 
-require "rails_helper"
+def sign_in(user)
+  visit "/users/sign_in"
 
-RSpec.describe FollowRequest, type: :model do
-  describe "has a belongs_to association defined called 'sender' with Class name 'User'", points: 1 do
-    it { should belong_to(:sender).class_name("User") }
-  end
-
-  describe "has a belongs_to association defined called 'recipient' with Class name 'User'", points: 1 do
-    it { should belong_to(:recipient).class_name("User") }
-  end
+  fill_in "Email", with: user.email
+  fill_in "Password", with: user.password
+  click_button "Sign in"
 end
 
-require "rails_helper"
-
-RSpec.describe Like, type: :model do
-  describe "has a belongs_to association defined called 'fan' with Class name 'User'", points: 1 do
-    it { should belong_to(:fan).class_name("User") }
-  end
-end
-
-RSpec.describe Like, type: :model do
-  describe "has a belongs_to association defined called 'photo'", points: 1 do
-    it { should belong_to(:photo) }
-  end
-end
-
-require "rails_helper"
-
-RSpec.describe Photo, type: :model do
-  describe "has a belongs_to association defined called 'owner' with Class name 'User'", points: 1 do
-    it { should belong_to(:owner).class_name("User") }
-  end
-
-  describe "has a has_many association defined called 'comments'", points: 1 do
-    it { should have_many(:comments) }
-  end
-
-  describe "has a has_many association defined called 'likes'", points: 1 do
-    it { should have_many(:likes) }
-  end
-
-  describe "has a has_many (many-to_many) association defined called 'fans' through 'likes'", points: 1 do
-    it { should have_many(:fans).through(:likes) }
-  end
-end
-
-require "rails_helper"
-
-
-RSpec.describe User, type: :model do
-  describe "has a has_many association defined called 'comments' with Class name 'Comment' and foreign key 'author_id'", points: 1 do
-    it { should have_many(:comments).class_name("Comment").with_foreign_key("author_id") }
-  end
-
-  describe "has a has_many association defined called 'own_photos' with Class name 'Photo' and foreign key 'owner_id'", points: 1 do
-    it { should have_many(:own_photos).class_name("Photo").with_foreign_key("owner_id") }
-  end
-
-  describe "has a has_many association defined called 'likes' with Class name 'Like' and foreign key 'fan_id'", points: 1 do
-    it { should have_many(:likes).class_name("Like").with_foreign_key("fan_id") }
-  end
-
-  describe "has a has_many (many-to_many) association defined called 'liked_photos' through 'likes' and source 'photo'", points: 1 do
-    it { should have_many(:liked_photos).through(:likes).source(:photo) }
-  end
-
-  describe "has a has_many association defined called 'sent_follow_requests' with Class name 'FollowRequest' and foreign key 'sender_id'", points: 1 do
-    it { should have_many(:sent_follow_requests).class_name("FollowRequest").with_foreign_key("sender_id") }
-  end
-
-  describe "has a has_many association defined called 'received_follow_requests' with Class name 'FollowRequest' and foreign key 'recipient_id'", points: 1 do
-    it { should have_many(:received_follow_requests).class_name("FollowRequest").with_foreign_key("recipient_id") }
-  end
-
-  describe "has a has_many association defined called 'accepted_sent_follow_requests' with scope where 'status' is \"accepted\"", points: 1 do
-    it { should have_many(:accepted_sent_follow_requests).class_name("FollowRequest").with_foreign_key("sender_id").conditions(status: "accepted") }
-  end
-
-  describe "has a has_many association defined called 'accepted_received_follow_requests' with scope where 'status' is \"accepted\"", points: 1 do
-    it { should have_many(:accepted_received_follow_requests).class_name("FollowRequest").with_foreign_key("recipient_id").conditions(status: "accepted") }
-  end
-
-  describe "has a has_many (many-to_many) association defined called 'followers' through 'accepted_received_follow_requests' and source 'sender'", points: 1 do
-    it { should have_many(:followers).through(:accepted_received_follow_requests).source(:sender) }
-  end
-
-  describe "has a has_many (many-to_many) association defined called 'leaders' through 'accepted_sent_follow_requests' and source 'recipient'", points: 1 do
-    it { should have_many(:leaders).through(:accepted_sent_follow_requests).source(:recipient) }
-  end
-
-  describe "has a has_many (many-to_many) association defined called 'feed' through 'leaders' and source 'own_photos'", points: 1 do
-    it { should have_many(:feed).through(:leaders).source(:own_photos) }
-  end
-
-  describe "has a has_many (many-to_many) association defined called 'discover' through 'leaders' and source 'liked_photos'", points: 1 do
-    it { should have_many(:discover).through(:leaders).source(:liked_photos) }
-  end
+def create_photo(owner:, caption: "caption")
+  photo = Photo.new(caption: caption, owner_id: owner.id)
+  photo.image.attach(io: File.open(Rails.root.join("spec/support/test_image.jpeg")), filename: "test_image.jpeg", content_type: "image/jpeg")
+  photo.save!
+  photo
 end
 
 -->
