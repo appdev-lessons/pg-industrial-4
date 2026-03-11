@@ -1,4 +1,4 @@
-# Photogram Industrial Part 4: Profile page and views
+# Photogram Industrial: Profile page and views
 
 ## Walkthrough video
 
