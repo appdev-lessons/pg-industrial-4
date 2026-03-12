@@ -954,9 +954,9 @@ Replace `app/views/photos/edit.html.erb`:
 
 ## Photo likes page
 
-When a user clicks on the likes count on a photo, they see a list of all users who liked that photo. This uses the nested route `/photos/:photo_id/likes`.
+When a user clicks on the likes count on a photo, they see a list of all users who liked that photo. This uses the nested route `/photos/:photo_id/likes`, which routes to `LikesController#index` (not `PhotosController`). In Part 3 we updated the `LikesController#index` action to find the photo via `params[:photo_id]` and set `@photo` and `@likes`. Now we need to update the view it renders.
 
-Create `app/views/photos/likes.html.erb`:
+Replace the scaffold-generated `app/views/likes/index.html.erb`:
 
 ```erb
 <% content_for :title, "Liked by" %>
@@ -975,7 +975,7 @@ Create `app/views/photos/likes.html.erb`:
   </ul>
 </div>
 ```
-{: filename="app/views/photos/likes.html.erb" }
+{: filename="app/views/likes/index.html.erb" }
 
 Each like is rendered using the `likes/_like.html.erb` partial we created earlier, which shows the fan's avatar, display name, username, bio, and a follow/unfollow button.
 
