@@ -67,6 +67,8 @@ git push --set-upstream origin profile-page-and-views
 
 That last command publishes the branch to GitHub. From now on, you can push with just `git push` after each commit.
 
+[See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
+
 ## List group layout partial
 
 We'll be rendering collections of photos wrapped in `<li>` elements throughout the app. Rather than repeating the wrapping markup, let's create a layout partial that Rails can use with `render ... layout:`.
@@ -377,6 +379,8 @@ git commit -m "Added photo card, like, comment partials and forms"
 git push
 ```
 
+[See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
+
 ## Follow/unfollow partial
 
 This partial handles three states for the relationship between two users:
@@ -455,6 +459,8 @@ git add -A
 git commit -m "Added follow/unfollow partial and form"
 git push
 ```
+
+[See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
 
 ## User profile page
 
@@ -631,6 +637,8 @@ git commit -m "Built user profile page with tabbed interface"
 git push
 ```
 
+[See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
+
 ## Feed and Discover pages
 
 The feed and discover pages are straightforward since they reuse the same photo card partial. The routes and controller actions were set up in Part 3. `feed` shows photos from people you follow, and `discover` shows photos liked by people you follow.
@@ -690,6 +698,8 @@ git add -A
 git commit -m "Added feed and discover pages"
 git push
 ```
+
+[See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
 
 ## User list item partial
 
@@ -904,6 +914,8 @@ git commit -m "Added followers, following, and pending pages"
 git push
 ```
 
+[See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
+
 ## User search results (index)
 
 The users index page displays search results. The `UsersController#index` action (from Part 3) uses Ransack to search by username. The view is simple since it reuses our `_list_item` partial.
@@ -994,6 +1006,8 @@ git add -A
 git commit -m "Added photo show, edit, and likes pages"
 git push
 ```
+
+[See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
 
 ## Customizing Devise views
 
@@ -1484,6 +1498,8 @@ git commit -m "Customized Devise views: sign in, sign up, and settings"
 git push
 ```
 
+[See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
+
 ## Finish it off
 
 We've built out the core views, but there may be some remaining details to polish before all the `rake grade` tests pass. Here are some hints:
@@ -1507,6 +1523,8 @@ git add -A
 git commit -m "Completed Part 4: profile page, views, and Devise customization"
 git push
 ```
+
+[See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
 
 Don't forget to open a pull request on GitHub for this branch!
 
