@@ -695,7 +695,7 @@ end
 ```
 {: filename="app/controllers/users_controller.rb" }
 
-The `feed` association traverses User -> Leaders -> Own Photos, and `discover` traverses User -> Leaders -> Liked Photos. All that complex SQL is handled by the associations we defined in an earlier lesson.
+The `feed` association traverses User → Leaders → Own Photos, and `discover` traverses User → Leaders → Liked Photos. All that complex SQL is handled by the associations we defined in an earlier lesson.
 
 Commit:
 
