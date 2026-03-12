@@ -1477,11 +1477,11 @@ Replace the generated `app/views/users/registrations/edit.html.erb` with:
 
 This is a large form, so let's understand the validation pattern it uses. Each field group follows the same structure:
 
-1. Check if this specific field had an error: `resource.errors.include?(:field_name)`
-2. Start with a base CSS class: `"form-control"`
-3. If the form was submitted and validation failed (`was_validated`), add either `is-invalid` or `is-valid` to the class string
-4. Render the field with the computed class
-5. If the field was invalid, display the error messages in a `div.invalid-feedback`
+1. Check if this specific field had an error: `resource.errors.include?(:field_name)`.
+2. Start with a base CSS class: `"form-control"`.
+3. If the form was submitted and validation failed (`was_validated`), add either `is-invalid` or `is-valid` to the class string.
+4. Render the field with the computed class.
+5. If the field was invalid, display the error messages in a `div.invalid-feedback`.
 
 This pattern gives users immediate visual feedback: green borders on valid fields, red borders and error messages on invalid ones.
 
