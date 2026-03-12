@@ -62,7 +62,10 @@ Commit:
 ```
 git add -A
 git commit -m "Added custom image CSS classes"
+git push --set-upstream origin profile-page-and-views
 ```
+
+That last command publishes the branch to GitHub. From now on, you can push with just `git push` after each commit.
 
 ## List group layout partial
 
@@ -371,6 +374,7 @@ Now let's commit all the partials we've created so far:
 ```
 git add -A
 git commit -m "Added photo card, like, comment partials and forms"
+git push
 ```
 
 ## Follow/unfollow partial
@@ -449,6 +453,7 @@ Commit:
 ```
 git add -A
 git commit -m "Added follow/unfollow partial and form"
+git push
 ```
 
 ## User profile page
@@ -623,6 +628,7 @@ Commit:
 ```
 git add -A
 git commit -m "Built user profile page with tabbed interface"
+git push
 ```
 
 ## Feed and Discover pages
@@ -682,6 +688,7 @@ Commit:
 ```
 git add -A
 git commit -m "Added feed and discover pages"
+git push
 ```
 
 ## User list item partial
@@ -894,6 +901,7 @@ Commit:
 ```
 git add -A
 git commit -m "Added followers, following, and pending pages"
+git push
 ```
 
 ## User search results (index)
@@ -984,6 +992,7 @@ Commit:
 ```
 git add -A
 git commit -m "Added photo show, edit, and likes pages"
+git push
 ```
 
 ## Customizing Devise views
@@ -1472,6 +1481,7 @@ Commit:
 ```
 git add -A
 git commit -m "Customized Devise views: sign in, sign up, and settings"
+git push
 ```
 
 ## Finish it off
@@ -1495,7 +1505,7 @@ Now would be a good time for a final commit and push:
 ```
 git add -A
 git commit -m "Completed Part 4: profile page, views, and Devise customization"
-git push -u origin HEAD
+git push
 ```
 
 Don't forget to open a pull request on GitHub for this branch!
