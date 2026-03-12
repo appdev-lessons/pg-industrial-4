@@ -8,7 +8,7 @@ Let's continue building our Photogram Industrial project. Here's the target we'r
 
 Navigate to `github.com/codespaces` (or reopen the previous lesson and use the "Load assignment" button) and reopen your `photogram-industrial` project codespace to continue building on what you accomplished in _Photogram Industrial Parts 1, 2, and 3_.
 
-At this point, you should have all five models with their associations, validations, and scopes; a complete routes file; the application layout with a 3-column sidebar design; shared partials for the navbar and flash messages; `ApplicationController` with authentication, permitted parameters, and Ransack; and customized scaffold controllers for Photos, Comments, Likes, and FollowRequests. What we _don't_ have yet are the custom view templates — the user profile page, the photo card, the feed, the discover page, and so on. That's what we'll build in this lesson.
+At this point, you should have all five models with their associations, validations, and scopes; a complete routes file; the application layout with a 3-column sidebar design; shared partials for the navbar and flash messages; `ApplicationController` with authentication, permitted parameters, and Ransack; and customized scaffold controllers for Photos, Comments, Likes, and FollowRequests. What we _don't_ have yet are the custom view templates: the user profile page, the photo card, the feed, the discover page, and so on. That's what we'll build in this lesson.
 
 Make sure your sample data is loaded before continuing:
 
@@ -55,7 +55,7 @@ Create a new file `app/assets/stylesheets/custom-image.css`:
 
 Why do we need these? Without `object-fit: cover`, images stretch or squish to fit their container. With `cover`, the image maintains its aspect ratio and fills the container, cropping any overflow. Combined with `border-radius: 50%` (from Bootstrap's `rounded-circle` class), this gives us perfectly circular avatar images regardless of the source image's dimensions.
 
-The size classes (`img-small`, `img-medium`, `img-large`) give us consistent sizing across the app — small for inline avatars next to comments, medium for the profile page avatar, and large for the settings/edit page.
+The size classes (`img-small`, `img-medium`, `img-large`) give us consistent sizing across the app: small for inline avatars next to comments, medium for the profile page avatar, and large for the settings/edit page.
 
 Commit:
 
@@ -75,7 +75,7 @@ We'll be rendering collections of photos wrapped in `<li>` elements throughout t
 ```
 {: filename="app/views/layouts/_list_group.html.erb" }
 
-When you pass `layout: "layouts/list_group"` to a `render partial: ... collection:` call, Rails wraps each rendered partial in this layout. The `<%= yield %>` is where the partial's content gets inserted. This keeps our view code DRY — we define the wrapping `<li>` once and reuse it everywhere.
+When you pass `layout: "layouts/list_group"` to a `render partial: ... collection:` call, Rails wraps each rendered partial in this layout. The `<%= yield %>` is where the partial's content gets inserted. This keeps our view code DRY. We define the wrapping `<li>` once and reuse it everywhere.
 
 ## The photo card partial
 
@@ -195,9 +195,9 @@ The photo itself uses `img-fluid w-100` to fill the card width responsively. Bel
 
 On the left side, we render the like button (a separate partial) and a comment icon linking to the photo's show page. On the right side, a Bootstrap dropdown menu with three options:
 
-- **Edit** — links to the edit page
-- **Delete** — sends a DELETE request via `button_to`
-- **Pin/Un-pin** — sends a PATCH request that toggles the `pinned` boolean. Notice `params: { photo: { pinned: !photo.pinned } }` — this flips the current value.
+- **Edit**: links to the edit page
+- **Delete**: sends a DELETE request via `button_to`
+- **Pin/Un-pin**: sends a PATCH request that toggles the `pinned` boolean. The `params: { photo: { pinned: !photo.pinned } }` syntax flips the current value.
 
 ### Caption and comments
 
@@ -207,7 +207,7 @@ The caption area shows the owner's display name, username, a relative timestamp 
 Notice that `render photo.comments.default_order` uses Rails' convention: when you pass an ActiveRecord collection to `render`, Rails automatically looks for a partial named after the model (`comments/_comment.html.erb`) and renders it once for each record, passing the local variable `comment`. This is equivalent to `render partial: "comments/comment", collection: photo.comments.default_order`.
 </aside>
 
-Now would be a good time for a commit — but first we need to create the partials that this photo card depends on. Let's keep going.
+Now would be a good time for a commit, but first we need to create the partials that this photo card depends on. Let's keep going.
 
 ## Like/unlike partial
 
@@ -342,7 +342,7 @@ Each comment renders with the author's avatar, display name, username, time, com
 ```
 {: filename="app/views/comments/_comment.html.erb" }
 
-This uses the same Bootstrap flex media object pattern. The dropdown menu at the bottom-right gives the user Edit and Delete options. Notice that the `<li>` uses `dom_id(comment)` (e.g., `comment_42`) as its HTML id — this is important for Capybara tests that use `within("#comment_42")` to scope actions to a specific comment.
+This uses the same Bootstrap flex media object pattern. The dropdown menu at the bottom-right gives the user Edit and Delete options. Notice that the `<li>` uses `dom_id(comment)` (e.g., `comment_42`) as its HTML id. This is important for Capybara tests that use `within("#comment_42")` to scope actions to a specific comment.
 
 ## Comment form
 
@@ -377,9 +377,9 @@ git commit -m "added photo card, like, comment partials and forms"
 
 This partial handles three states for the relationship between two users:
 
-1. **Following** — the sender already follows the recipient (accepted follow request)
-2. **Requested** — the sender has sent a pending follow request
-3. **Follow** — no follow request exists yet
+1. **Following**: the sender already follows the recipient (accepted follow request)
+2. **Requested**: the sender has sent a pending follow request
+3. **Follow**: no follow request exists yet
 
 Create `app/views/follow_requests/_follow_unfollow.html.erb`:
 
@@ -410,7 +410,7 @@ Create `app/views/follow_requests/_follow_unfollow.html.erb`:
 
 Let's walk through this logic:
 
-- First, `unless sender == recipient` — you shouldn't see a follow button on your own profile!
+- First, `unless sender == recipient`: you shouldn't see a follow button on your own profile!
 - We look up whether the sender has an existing follow request for this recipient using `find_by`.
 - If a request exists and is `pending?` (from our enum), we show a "Requested" button with an envelope icon. Clicking it sends a DELETE request to cancel the follow request.
 - If a request exists and is `accepted?`, we show a "Following" button with a check icon. Clicking it sends a DELETE request to unfollow.
@@ -603,19 +603,19 @@ We display `display_name` if present, otherwise fall back to `username`. The pri
 The followers, following, pending, and posts counts each link to their respective pages (using the route helpers from Part 3). A few details to notice:
 
 - We use `link_to ... do ... end` (block form) to wrap both the count number and the label text inside a single link.
-- The "pending" count only shows when `current_user == @user && @user.private?` — you can only see your own pending requests, and only if your account is private.
+- The "pending" count only shows when `current_user == @user && @user.private?`, since you can only see your own pending requests, and only if your account is private.
 - We use `@user.photos_count` (the counter cache column) instead of `@user.own_photos.count` to avoid an extra database query.
 
 ### Tabbed interface
 
-The tabs use [Bootstrap 5's JavaScript-powered tabs](https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior). The `<button>` elements have `data-bs-toggle="tab"` and `data-bs-target` attributes that tell Bootstrap which content pane to show when clicked. No custom JavaScript needed — Bootstrap handles it.
+The tabs use [Bootstrap 5's JavaScript-powered tabs](https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior). The `<button>` elements have `data-bs-toggle="tab"` and `data-bs-target` attributes that tell Bootstrap which content pane to show when clicked. No custom JavaScript needed; Bootstrap handles it.
 
 In the **Posts** tab pane, we render pinned photos first, then unpinned photos. This uses the `pinned` and `unpinned` scopes we defined on the Photo model in Part 2. Each photo is wrapped in a list group item using our `layouts/list_group` layout partial.
 
 In the **Likes** tab pane, we render all of the user's liked photos using the `liked_photos` association.
 
 <aside markdown="1">
-The `render partial: ... collection: ... layout:` pattern is a powerful Rails feature. It renders the partial once for each item in the collection, wrapping each in the specified layout. The local variable name inside the partial is automatically derived from the partial name — so `photos/_photo.html.erb` receives `photo` as a local.
+The `render partial: ... collection: ... layout:` pattern is a powerful Rails feature. It renders the partial once for each item in the collection, wrapping each in the specified layout. The local variable name inside the partial is automatically derived from the partial name, so `photos/_photo.html.erb` receives `photo` as a local.
 </aside>
 
 Commit:
@@ -627,7 +627,7 @@ git commit -m "built user profile page with tabbed interface"
 
 ## Feed and Discover pages
 
-The feed and discover pages are straightforward since they reuse the same photo card partial. The routes and controller actions were set up in Part 3 — `feed` shows photos from people you follow, and `discover` shows photos liked by people you follow.
+The feed and discover pages are straightforward since they reuse the same photo card partial. The routes and controller actions were set up in Part 3. `feed` shows photos from people you follow, and `discover` shows photos liked by people you follow.
 
 Create `app/views/users/feed.html.erb`:
 
@@ -661,7 +661,7 @@ Create `app/views/users/discover.html.erb`:
 ```
 {: filename="app/views/users/discover.html.erb" }
 
-Both pages are nearly identical — they render the photo card partial for each photo in `@photos`. The only difference is where `@photos` comes from:
+Both pages are nearly identical. They render the photo card partial for each photo in `@photos`. The only difference is where `@photos` comes from:
 
 ```ruby
 # In UsersController
@@ -756,7 +756,7 @@ Create `app/views/users/followers.html.erb`:
 ```
 {: filename="app/views/users/followers.html.erb" }
 
-The `link_to :back` generates a link to the previous page using the browser's referrer — a convenient Rails helper. Each follower is rendered using our `_list_item` partial, and we show a friendly message if the user has no followers.
+The `link_to :back` generates a link to the previous page using the browser's referrer, a convenient Rails helper. Each follower is rendered using our `_list_item` partial, and we show a friendly message if the user has no followers.
 
 ## Following page
 
@@ -886,7 +886,7 @@ The key thing here is the two `form_with` calls for each follow request. Both fo
 Each form includes `hidden_field :recipient_id` and `hidden_field :status` to pass the necessary data. The `FollowRequestsController#update` action (set up in Part 3) handles updating the status accordingly.
 
 <aside markdown="1">
-We can't reuse the `_list_item` partial here because we need the Accept/Reject buttons instead of the Follow/Unfollow button. When a partial doesn't quite fit, it's fine to inline the markup — don't force a partial to do something it wasn't designed for.
+We can't reuse the `_list_item` partial here because we need the Accept/Reject buttons instead of the Follow/Unfollow button. When a partial doesn't quite fit, it's fine to inline the markup. Don't force a partial to do something it wasn't designed for.
 </aside>
 
 Commit:
@@ -1002,9 +1002,9 @@ We pass `users` because that's our Devise scope. This places the generated views
 
 This generates several files. The three we care about are:
 
-- `app/views/users/sessions/new.html.erb` — the sign in form
-- `app/views/users/registrations/new.html.erb` — the sign up form
-- `app/views/users/registrations/edit.html.erb` — the settings/profile edit form
+- `app/views/users/sessions/new.html.erb`: the sign in form
+- `app/views/users/registrations/new.html.erb`: the sign up form
+- `app/views/users/registrations/edit.html.erb`: the settings/profile edit form
 
 Let's customize each one.
 
@@ -1454,7 +1454,7 @@ This is a large form, so let's understand the validation pattern it uses. Each f
 4. Render the field with the computed class
 5. If the field was invalid, display the error messages in a `div.invalid-feedback`
 
-This pattern gives users immediate visual feedback — green borders on valid fields, red borders and error messages on invalid ones.
+This pattern gives users immediate visual feedback: green borders on valid fields, red borders and error messages on invalid ones.
 
 <aside markdown="1">
 The `novalidate: true` in the form options disables the browser's built-in HTML5 validation. We do this because we want to use our own server-side validation with Bootstrap's styling instead of the browser's default (and inconsistent) validation popups.
@@ -1465,7 +1465,7 @@ A few other things to note about this form:
 - **Avatar image** uses `f.file_field :avatar_image` with a preview of the current avatar above it. The `accept: "image/*"` attribute restricts the file picker to image files only.
 - **Profile banner** includes a "Remove Profile Banner" checkbox that uses the `remove_profile_banner` virtual attribute we defined on the User model in Part 2. When checked and the form is submitted, the `after_save :purge_profile_banner` callback removes the banner from Cloudinary.
 - **Private** uses a checkbox to toggle the account's privacy setting.
-- **Current password** is required by Devise for any changes — this is a security feature to prevent unauthorized edits from hijacked sessions.
+- **Current password** is required by Devise for any changes. This is a security feature to prevent unauthorized edits from hijacked sessions.
 
 Commit:
 
@@ -1478,16 +1478,16 @@ git commit -m "customized Devise views: sign in, sign up, and settings"
 
 We've built out the core views, but there may be some remaining details to polish before all the `rake grade` tests pass. Here are some hints:
 
-- Make sure the navbar in your application layout (from Part 3) has links for "Feed", "Discover", "Go to profile", "Settings" (`/users/edit`), and "Sign out" — the tests check for these.
+- Make sure the navbar in your application layout (from Part 3) has links for "Feed", "Discover", "Go to profile", "Settings" (`/users/edit`), and "Sign out". The tests check for these.
 - Make sure the "Add photo" button in the sidebar opens the new photo form (via the Bootstrap modal from Part 3).
 - The photo form (`app/views/photos/_form.html.erb`) should use `form.file_field :image` for Active Storage uploads, not `form.text_field :image`.
-- Run `rake grade` often and read the failing test names carefully — they tell you exactly what's expected.
+- Run `rake grade` often and read the failing test names carefully. They tell you exactly what's expected.
 
 If you get stuck, you can reference the target app at [pg-industrial.matchthetarget.com](https://pg-industrial.matchthetarget.com/) and look at [the solution pull request](https://github.com/appdev-projects/photogram-industrial/pull/4/files) for the complete code.
 
 <div class="alert alert-info">
 
-You do not need to get every visual detail of your app to match the target to get the `grade` tests to pass. The tests are more concerned with functionality — can you visit the right pages, see the right content, click the right buttons. Focus on making tests pass rather than pixel-perfect design. In the next project, _Photogram Industrial Authorization_, the starting point code will be a complete solution to the current target.
+You do not need to get every visual detail of your app to match the target to get the `grade` tests to pass. The tests are more concerned with functionality: can you visit the right pages, see the right content, click the right buttons. Focus on making tests pass rather than pixel-perfect design. In the next project, _Photogram Industrial Authorization_, the starting point code will be a complete solution to the current target.
 </div>
 
 Now would be a good time for a final commit and push:
