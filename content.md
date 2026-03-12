@@ -6,7 +6,7 @@ Let's continue building our Photogram Industrial project. Here's the target we'r
 
 [pg-industrial.matchthetarget.com](https://pg-industrial.matchthetarget.com/)
 
-Navigate to `github.com/codespaces` (or reopen the previous lesson and use the "Load assignment" button) and reopen your `photogram-industrial` project codespace to continue building on what you accomplished in _Photogram Industrial Parts 1, 2, and 3_.
+Navigate to `github.com/codespaces` (or reopen the previous lesson and use the "Load assignment" button) and reopen your `photogram-industrial` project codespace to continue building on what you accomplished in the previous lessons.
 
 At this point, you should have all five models with their associations, validations, and scopes; a complete routes file; the application layout with a 3-column sidebar design; shared partials for the navbar and flash messages; `ApplicationController` with authentication, permitted parameters, and Ransack; and customized scaffold controllers for Photos, Comments, Likes, and FollowRequests. What we _don't_ have yet are the custom view templates: the user profile page, the photo card, the feed, the discover page, and so on. That's what we'll build in this lesson.
 
@@ -212,7 +212,7 @@ On the left side, we render the like button (a separate partial) and a comment i
 
 ### Caption and comments
 
-The caption area shows the owner's display name, username, a relative timestamp (via `time_ago_in_words`), and the caption text. Below that, we render all comments using `render photo.comments.default_order` (which uses the `default_order` scope from Part 2 to show oldest-first), followed by a comment form for adding a new comment.
+The caption area shows the owner's display name, username, a relative timestamp (via `time_ago_in_words`), and the caption text. Below that, we render all comments using `render photo.comments.default_order` (which uses the `default_order` scope from an earlier lesson to show oldest-first), followed by a comment form for adding a new comment.
 
 <aside markdown="1">
 Notice that `render photo.comments.default_order` uses Rails' convention: when you pass an ActiveRecord collection to `render`, Rails automatically looks for a partial named after the model (`comments/_comment.html.erb`) and renders it once for each record, passing the local variable `comment`. This is equivalent to `render partial: "comments/comment", collection: photo.comments.default_order`.
@@ -430,7 +430,7 @@ Let's walk through this logic:
 - If a request exists and is `accepted?`, we show a "Following" button with a check icon. Clicking it sends a DELETE request to unfollow.
 - If no request exists, we render the follow request form, which shows a "Follow" button.
 
-The `pending?` and `accepted?` methods come for free from our `enum :status` declaration on the FollowRequest model in Part 2.
+The `pending?` and `accepted?` methods come for free from our `enum :status` declaration on the FollowRequest model in an earlier lesson.
 
 ### Follow request form
 
@@ -456,7 +456,7 @@ Replace the scaffold-generated `app/views/follow_requests/_form.html.erb`:
 
 We use `form.button ... do ... end` (block form) to include both the Font Awesome icon and the text inside the button. The `persisted?` check differentiates between an existing follow request and a new one being built.
 
-Recall from Part 3 that our `FollowRequestsController#create` action auto-accepts the request if the recipient's account is public. So clicking "Follow" on a public account will immediately change to "Following" on the next page load.
+Recall from the previous lesson that our `FollowRequestsController#create` action auto-accepts the request if the recipient's account is public. So clicking "Follow" on a public account will immediately change to "Following" on the next page load.
 
 Commit:
 
@@ -472,7 +472,7 @@ git push
 
 Now we're ready to build the centerpiece of the app — the user profile page. This is where everything comes together: the banner image, avatar, display name, stats, follow button, and a tabbed interface showing the user's posts and liked photos.
 
-The route and controller action were set up in Part 3. The route `get ":username" => "users#show", as: :user` maps URLs like `/alice` to the `UsersController#show` action, which uses `find_by!(username: params[:username])` to look up the user.
+The route and controller action were set up in the previous lesson. The route `get ":username" => "users#show", as: :user` maps URLs like `/alice` to the `UsersController#show` action, which uses `find_by!(username: params[:username])` to look up the user.
 
 Create `app/views/users/show.html.erb`:
 
@@ -617,7 +617,7 @@ We display `display_name` if present, otherwise fall back to `username`. The pri
 
 ### Profile stats
 
-The followers, following, pending, and posts counts each link to their respective pages (using the route helpers from Part 3). A few details to notice:
+The followers, following, pending, and posts counts each link to their respective pages (using the route helpers from the previous lesson). A few details to notice:
 
 - We use `link_to ... do ... end` (block form) to wrap both the count number and the label text inside a single link.
 - The "pending" count only shows when `current_user == @user && @user.private?`, since you can only see your own pending requests, and only if your account is private.
@@ -627,7 +627,7 @@ The followers, following, pending, and posts counts each link to their respectiv
 
 The tabs use [Bootstrap 5's JavaScript-powered tabs](https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior). The `<button>` elements have `data-bs-toggle="tab"` and `data-bs-target` attributes that tell Bootstrap which content pane to show when clicked. No custom JavaScript needed; Bootstrap handles it.
 
-In the **Posts** tab pane, we render pinned photos first, then unpinned photos. This uses the `pinned` and `unpinned` scopes we defined on the Photo model in Part 2. Each photo is wrapped in a list group item using our `layouts/list_group` layout partial.
+In the **Posts** tab pane, we render pinned photos first, then unpinned photos. This uses the `pinned` and `unpinned` scopes we defined on the Photo model in an earlier lesson. Each photo is wrapped in a list group item using our `layouts/list_group` layout partial.
 
 In the **Likes** tab pane, we render all of the user's liked photos using the `liked_photos` association.
 
@@ -647,7 +647,7 @@ git push
 
 ## Feed and Discover pages
 
-The feed and discover pages are straightforward since they reuse the same photo card partial. The routes and controller actions were set up in Part 3. `feed` shows photos from people you follow, and `discover` shows photos liked by people you follow.
+The feed and discover pages are straightforward since they reuse the same photo card partial. The routes and controller actions were set up in the previous lesson. `feed` shows photos from people you follow, and `discover` shows photos liked by people you follow.
 
 Create `app/views/users/feed.html.erb`:
 
@@ -695,7 +695,7 @@ end
 ```
 {: filename="app/controllers/users_controller.rb" }
 
-The `feed` association traverses User -> Leaders -> Own Photos, and `discover` traverses User -> Leaders -> Liked Photos. All that complex SQL is handled by the associations we defined in Part 2.
+The `feed` association traverses User -> Leaders -> Own Photos, and `discover` traverses User -> Leaders -> Liked Photos. All that complex SQL is handled by the associations we defined in an earlier lesson.
 
 Commit:
 
@@ -906,7 +906,7 @@ The key thing here is the two `form_with` calls for each follow request. Both fo
 - The **Accept** form sends `status: "accepted"`, which triggers the `FollowRequest` to be accepted.
 - The **Reject** form sends `status: "rejected"`, which rejects it.
 
-Each form includes `hidden_field :recipient_id` and `hidden_field :status` to pass the necessary data. The `FollowRequestsController#update` action (set up in Part 3) handles updating the status accordingly.
+Each form includes `hidden_field :recipient_id` and `hidden_field :status` to pass the necessary data. The `FollowRequestsController#update` action (set up in the previous lesson) handles updating the status accordingly.
 
 <aside markdown="1">
 We can't reuse the `_list_item` partial here because we need the Accept/Reject buttons instead of the Follow/Unfollow button. When a partial doesn't quite fit, it's fine to inline the markup. Don't force a partial to do something it wasn't designed for.
@@ -924,7 +924,7 @@ git push
 
 ## User search results (index)
 
-The users index page displays search results. The `UsersController#index` action (from Part 3) uses Ransack to search by username. The view is simple since it reuses our `_list_item` partial.
+The users index page displays search results. The `UsersController#index` action (from the previous lesson) uses Ransack to search by username. The view is simple since it reuses our `_list_item` partial.
 
 Create `app/views/users/index.html.erb`:
 
@@ -939,7 +939,7 @@ Create `app/views/users/index.html.erb`:
 ```
 {: filename="app/views/users/index.html.erb" }
 
-This renders a list group of users. The Ransack search form in the sidebar (from the application layout in Part 3) submits to this page, and the `@users` variable contains the results.
+This renders a list group of users. The Ransack search form in the sidebar (from the application layout in the previous lesson) submits to this page, and the `@users` variable contains the results.
 
 ## Photo show and edit pages
 
@@ -980,7 +980,7 @@ Replace `app/views/photos/edit.html.erb`:
 
 ## Photo likes page
 
-When a user clicks on the likes count on a photo, they see a list of all users who liked that photo. This uses the nested route `/photos/:photo_id/likes`, which routes to `LikesController#index` (not `PhotosController`). In Part 3 we updated the `LikesController#index` action to find the photo via `params[:photo_id]` and set `@photo` and `@likes`. Now we need to update the view it renders.
+When a user clicks on the likes count on a photo, they see a list of all users who liked that photo. This uses the nested route `/photos/:photo_id/likes`, which routes to `LikesController#index` (not `PhotosController`). In the previous lesson we updated the `LikesController#index` action to find the photo via `params[:photo_id]` and set `@photo` and `@likes`. Now we need to update the view it renders.
 
 Replace the scaffold-generated `app/views/likes/index.html.erb`:
 
@@ -1078,7 +1078,7 @@ The main changes from the default: we changed "Log in" to "Sign in" in both the 
 
 ### Sign up view
 
-The sign up form needs two additional fields that Devise doesn't include by default: `display_name` and `username`. Remember, we already permitted these parameters in `ApplicationController` in Part 3 via `configure_permitted_parameters`.
+The sign up form needs two additional fields that Devise doesn't include by default: `display_name` and `username`. Remember, we already permitted these parameters in `ApplicationController` in the previous lesson via `configure_permitted_parameters`.
 
 ```erb
 <h2>Sign up</h2>
@@ -1123,7 +1123,7 @@ The sign up form needs two additional fields that Devise doesn't include by defa
 ```
 {: filename="app/views/users/registrations/new.html.erb" }
 
-The key additions are the `display_name` and `username` fields between the email and password fields. These are already permitted through the `configure_permitted_parameters` method we set up in `ApplicationController` in Part 3, so they'll be saved when the form is submitted.
+The key additions are the `display_name` and `username` fields between the email and password fields. These are already permitted through the `configure_permitted_parameters` method we set up in `ApplicationController` in the previous lesson, so they'll be saved when the form is submitted.
 
 ### Settings / profile edit view
 
@@ -1492,7 +1492,7 @@ The `novalidate: true` in the form options disables the browser's built-in HTML5
 A few other things to note about this form:
 
 - **Avatar image** uses `f.file_field :avatar_image` with a preview of the current avatar above it. The `accept: "image/*"` attribute restricts the file picker to image files only.
-- **Profile banner** includes a "Remove Profile Banner" checkbox that uses the `remove_profile_banner` virtual attribute we defined on the User model in Part 2. When checked and the form is submitted, the `after_save :purge_profile_banner` callback removes the banner from Cloudinary.
+- **Profile banner** includes a "Remove Profile Banner" checkbox that uses the `remove_profile_banner` virtual attribute we defined on the User model in an earlier lesson. When checked and the form is submitted, the `after_save :purge_profile_banner` callback removes the banner from Cloudinary.
 - **Private** uses a checkbox to toggle the account's privacy setting.
 - **Current password** is required by Devise for any changes. This is a security feature to prevent unauthorized edits from hijacked sessions.
 
@@ -1510,8 +1510,8 @@ git push
 
 We've built out the core views, but there may be some remaining details to polish before all the `rake grade` tests pass. Here are some hints:
 
-- Make sure the navbar in your application layout (from Part 3) has links for "Feed", "Discover", "Go to profile", "Settings" (`/users/edit`), and "Sign out". The tests check for these.
-- Make sure the "Add photo" button in the sidebar opens the new photo form (via the Bootstrap modal from Part 3).
+- Make sure the navbar in your application layout (from the previous lesson) has links for "Feed", "Discover", "Go to profile", "Settings" (`/users/edit`), and "Sign out". The tests check for these.
+- Make sure the "Add photo" button in the sidebar opens the new photo form (via the Bootstrap modal from the previous lesson).
 - The photo form (`app/views/photos/_form.html.erb`) should use `form.file_field :image` for Active Storage uploads, not `form.text_field :image`.
 - Run `rake grade` often and read the failing test names carefully. They tell you exactly what's expected.
 
@@ -1526,7 +1526,7 @@ Now would be a good time for a final commit and push:
 
 ```
 git add -A
-git commit -m "Completed Part 4: profile page, views, and Devise customization"
+git commit -m "Completed profile page, views, and Devise customization"
 git push
 ```
 
