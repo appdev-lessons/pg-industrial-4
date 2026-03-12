@@ -19,7 +19,7 @@ rake sample_data
 Let's create a new branch for this work:
 
 ```
-git checkout -b <your-initials>-profile-page-and-views
+git checkout -b profile-page-and-views
 ```
 
 ## Custom image CSS
@@ -61,7 +61,7 @@ Commit:
 
 ```
 git add -A
-git commit -m "added custom image CSS classes"
+git commit -m "Added custom image CSS classes"
 ```
 
 ## List group layout partial
@@ -370,7 +370,7 @@ Now let's commit all the partials we've created so far:
 
 ```
 git add -A
-git commit -m "added photo card, like, comment partials and forms"
+git commit -m "Added photo card, like, comment partials and forms"
 ```
 
 ## Follow/unfollow partial
@@ -448,7 +448,7 @@ Commit:
 
 ```
 git add -A
-git commit -m "added follow/unfollow partial and form"
+git commit -m "Added follow/unfollow partial and form"
 ```
 
 ## User profile page
@@ -622,7 +622,7 @@ Commit:
 
 ```
 git add -A
-git commit -m "built user profile page with tabbed interface"
+git commit -m "Built user profile page with tabbed interface"
 ```
 
 ## Feed and Discover pages
@@ -681,7 +681,7 @@ Commit:
 
 ```
 git add -A
-git commit -m "added feed and discover pages"
+git commit -m "Added feed and discover pages"
 ```
 
 ## User list item partial
@@ -893,7 +893,7 @@ Commit:
 
 ```
 git add -A
-git commit -m "added followers, following, and pending pages"
+git commit -m "Added followers, following, and pending pages"
 ```
 
 ## User search results (index)
@@ -983,7 +983,7 @@ Commit:
 
 ```
 git add -A
-git commit -m "added photo show, edit, and likes pages"
+git commit -m "Added photo show, edit, and likes pages"
 ```
 
 ## Customizing Devise views
@@ -1471,7 +1471,7 @@ Commit:
 
 ```
 git add -A
-git commit -m "customized Devise views: sign in, sign up, and settings"
+git commit -m "Customized Devise views: sign in, sign up, and settings"
 ```
 
 ## Finish it off
@@ -1494,7 +1494,7 @@ Now would be a good time for a final commit and push:
 
 ```
 git add -A
-git commit -m "completed Part 4: profile page, views, and Devise customization"
+git commit -m "Completed Part 4: profile page, views, and Devise customization"
 git push -u origin HEAD
 ```
 
