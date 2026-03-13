@@ -136,7 +136,7 @@ Replace the scaffold-generated `app/views/photos/_photo.html.erb`. We'll build t
 
 First, wrap the entire partial in a `dom_id` div and add the pinned indicator:
 
-```erb{2-7}
+```erb{1-7}
 <div id="<%= dom_id(photo) %>">
   <% if photo.pinned? && current_page?(user_path(photo.owner.username)) %>
     <div class="icon-link text-primary">
@@ -154,8 +154,9 @@ We only show the "Pinned" badge when we're on the owner's profile page. The `cur
 
 Next, add the photo owner's avatar, username link, and a follow/unfollow button:
 
-```erb{3-10}
-  <!-- ... -->
+```erb{4-11}
+      Pinned
+    </div>
   <% end %>
   <div class="h5 m-0 p-0 d-flex align-items-center justify-content-between mb-2">
     <div class="d-flex">
@@ -175,8 +176,10 @@ We reuse the `follow_requests/follow_unfollow` partial (which we'll create short
 
 Display the photo image and a link showing the likes count:
 
-```erb{2-9}
-  <!-- ... -->
+```erb{4-11}
+    <%= render "follow_requests/follow_unfollow", sender: current_user, recipient: photo.owner %>
+  </div>
+
   <div>
     <%= image_tag photo.image, class: "img-fluid w-100" %>
   </div>
@@ -196,8 +199,10 @@ The photo uses `img-fluid w-100` to fill the card width responsively. Below it, 
 
 Add the like button, comment link, and a [Bootstrap dropdown](https://getbootstrap.com/docs/5.3/components/dropdowns/) menu for edit/delete/pin:
 
-```erb{2-32}
-  <!-- ... -->
+```erb{4-37}
+    </span>
+  </div>
+
   <div class="d-flex justify-content-between">
     <div class="d-flex">
       <%= render "photos/likes", photo: photo %>
@@ -246,8 +251,10 @@ On the left side, we render the like button (a separate partial) and a comment i
 
 Finally, add the caption area with the owner's info and timestamp, followed by the comments list and comment form:
 
-```erb{2-22}
-  <!-- ... -->
+```erb{4-26}
+    </div>
+  </div>
+
   <p>
     <%= link_to user_path(photo.owner.username), class: "text-decoration-none" do %>
       <%= photo.owner.display_name %>
@@ -396,8 +403,9 @@ This uses the Bootstrap flex media object pattern: a flex container with the ava
 
 Next, add the dropdown menu at the bottom-right for edit and delete actions:
 
-```erb{3-19}
-        <!-- ... -->
+```erb{5-30}
+        <p class="mb-0">
+          <%= comment.body %>
         </p>
 
         <div class="d-flex justify-content-end">
@@ -473,7 +481,7 @@ Create `app/views/follow_requests/_follow_unfollow.html.erb`. We'll walk through
 
 First, the guard clause, lookup, and the two states for when a follow request already exists:
 
-```erb{2-16}
+```erb{1-16}
 <div>
   <% unless sender == recipient %>
     <% follow_request = sender.sent_follow_requests.find_by(recipient: recipient) %>
@@ -501,9 +509,10 @@ First, the guard clause, lookup, and the two states for when a follow request al
 
 If no follow request exists, render the follow request form:
 
-```erb{3}
-    <!-- ... -->
-    <% end %>
+```erb{4-8}
+          Following
+        <% end %>
+      <% end %>
     <% else %>
       <%= render "follow_requests/form", follow_request: recipient.received_follow_requests.build %>
     <% end %>
@@ -579,8 +588,9 @@ The profile banner uses a `div` with a CSS `background-image` property, but only
 
 Next, add the avatar image that overlaps the banner:
 
-```erb{3}
-<!-- ... -->
+```erb{5}
+  <div class="container-fluid py-5">
+  </div>
 </div>
 
 <%= image_tag @user.avatar_image, class: "me-3 rounded-circle img-cover img-medium border border-light border-3", style: "margin-top: -6rem;" %>
@@ -595,8 +605,9 @@ The avatar uses `image_tag` with our custom `img-cover img-medium` classes for c
 
 Add the display name heading with a private [badge](https://getbootstrap.com/docs/5.3/components/badge/) and follow/unfollow button on the right using [flexbox utilities](https://getbootstrap.com/docs/5.3/utilities/flex/):
 
-```erb{2-16}
-<!-- ... -->
+```erb{3-18}
+<%= image_tag @user.avatar_image, class: "me-3 rounded-circle img-cover img-medium border border-light border-3", style: "margin-top: -6rem;" %>
+
 <h1 class="d-flex justify-content-between">
   <%= @user.display_name || @user.username %>
   <div class="d-flex justify-content-between">
@@ -623,8 +634,10 @@ We display `display_name` if present, otherwise fall back to `username`.
 
 Add the followers, following, pending, and posts counts, each linking to their respective pages:
 
-```erb{2-36}
-<!-- ... -->
+```erb{4-40}
+  @<%= @user.username %>
+</h4>
+
 <span>
   <%= link_to followers_path(@user.username), class: "text-decoration-none" do %>
     <span class="text-primary fw-bold"><%= @user.followers.count %></span>
@@ -676,8 +689,10 @@ A few details to notice:
 
 Add the user's bio and website link:
 
-```erb{2-6}
-<!-- ... -->
+```erb{4-10}
+  posts
+</span>
+
 <p class="mt-2">
   <%= @user.bio %>
 </p>
@@ -693,8 +708,9 @@ Add the user's bio and website link:
 
 Finally, add [Bootstrap 5's JavaScript-powered tabs](https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior) for Posts and Likes:
 
-```erb{2-30}
-<!-- ... -->
+```erb{3-29}
+<hr>
+
 <ul class="nav nav-underline mb-3" id="myTab" role="tablist">
   <li class="nav-item" role="presentation">
     <button class="nav-link active" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts-tab-pane" type="button" role="tab" aria-controls="posts-tab-pane" aria-selected="true">Posts <span class="badge text-bg-secondary"><%= @user.photos_count %></span></button>
@@ -942,8 +958,10 @@ The header follows the same structure as the followers and following pages:
 
 Next, the loop iterates over follow requests (not users) so we can build forms for each one. The user info layout mirrors `_list_item`, but instead of a Follow/Unfollow button, we show Accept and Reject forms:
 
-```erb{6-30}
-<!-- ... -->
+```erb{4-49}
+  <% end %>
+</div>
+
 <div>
   <ul class="list-group list-group-flush">
     <% @pending.each do |follow_request| %>
@@ -1003,8 +1021,8 @@ Each form includes `hidden_field :recipient_id` and `hidden_field :status` to pa
 
 Finally, close the loop with the user's bio and an empty state message:
 
-```erb{3-14}
-            <!-- ... -->
+```erb{4-19}
+              </div>
             </div>
 
             <p class="mb-0">
@@ -1250,7 +1268,7 @@ Replace the generated `app/views/users/registrations/edit.html.erb`. We'll build
 
 Start with the heading, a flag to track whether validation has occurred, and the form tag:
 
-```erb{3-8}
+```erb{1-9}
 <h2>Edit <%= resource_name.to_s.humanize %></h2>
 
 <div class="card-body">
@@ -1271,8 +1289,9 @@ The `was_validated` flag will be used by each field group to decide whether to s
 
 Each field in this form follows the same validation pattern. Here's how it looks for the `current_password` field:
 
-```erb{2-28}
-    <!-- ... -->
+```erb{3-33}
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: form_html_options) do |f| %>
+
     <div class="form-group">
       <% current_password_was_invalid = resource.errors.include?(:current_password) %>
 
@@ -1322,8 +1341,9 @@ Use this same pattern for the **email**, **password**, **password\_confirmation*
 
 The avatar field is unique because it uses `file_field` with a preview of the current avatar above it:
 
-```erb{11-15}
-    <!-- ... -->
+```erb{9-13}
+    <hr class="mt-4">
+
     <div class="form-group">
       <% avatar_image_was_invalid = resource.errors.include?(:avatar_image) %>
 
@@ -1347,8 +1367,9 @@ The `accept: "image/*"` attribute restricts the file picker to image files only.
 
 The profile banner field also uses `file_field`, but adds a "Remove Profile Banner" checkbox:
 
-```erb{11-20}
-    <!-- ... -->
+```erb{9-22}
+    </div>
+
     <div class="form-group">
       <% profile_banner_was_invalid = resource.errors.include?(:profile_banner) %>
 
@@ -1381,8 +1402,9 @@ The "Remove Profile Banner" checkbox uses the `remove_profile_banner` virtual at
 
 The private field uses a checkbox instead of a text input:
 
-```erb{6-9}
-    <!-- ... -->
+```erb{7-10}
+    </div>
+
     <div class="form-group">
       <% private_was_invalid = resource.errors.include?(:private) %>
 
@@ -1401,8 +1423,9 @@ The private field uses a checkbox instead of a text input:
 
 Finally, close the form with an Update button and a Back link:
 
-```erb{2-8}
-    <!-- ... -->
+```erb{3-11}
+    </div>
+
     <div class="d-grid">
       <%= f.submit "Update", class: "btn btn-outline-primary" %>
     </div>
