@@ -75,6 +75,26 @@ That last command publishes the branch to GitHub. From now on, you can push with
 
 [See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
 
+### Open a pull request
+
+Now that you've published the branch, go to GitHub and open a pull request. The **base** branch should be `routes-layout-controllers` (the branch from the previous lesson) and the **compare** branch should be `profile-page-and-views`.
+
+<div class="alert alert-info">
+
+Need a refresher on opening a PR? [Watch this short video demonstration.](https://share.descript.com/view/RLP4apAu5pp) And when you're ready to merge: [see the notes in our Git CLI lesson](/lessons/196-git-cli#merging-branches).
+</div>
+
+Any additional commits you push to this branch will automatically show up on the pull request. As you work through the rest of this lesson, you can periodically check the PR diff on GitHub to get a comprehensive overview of everything that has changed so far.
+
+Submit your pull request URL:
+
+- `profile-page-and-views` compared to `routes-layout-controllers`:
+- github.com
+  - Great job!
+- any
+  - Not quite. Make sure the URL looks like: `github.com/[YOUR_GITHUB_USERNAME]/pg-industrial/pull/X`
+{: .free_text #pr_url title="Pull request URL" points="1" answer="1" }
+
 ## List group layout partial
 
 We'll be rendering collections of photos wrapped in `<li>` elements throughout the app. Rather than repeating the wrapping markup, let's create a layout partial that Rails can use with `render ... layout:`.
@@ -1531,24 +1551,6 @@ git push
 ```
 
 [See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
-
-## Open and submit your pull request
-
-Open a pull request on GitHub for the `profile-page-and-views` branch. The **base** branch should be `routes-layout-controllers` (the branch from the previous lesson).
-
-<div class="alert alert-info">
-
-Need a refresher on opening a PR? [Watch this short video demonstration.](https://share.descript.com/view/RLP4apAu5pp) And when you're ready to merge: [see the notes in our Git CLI lesson](https://learn.firstdraft.com/lessons/196-git-cli#merging-branches).
-</div>
-
-Submit your pull request URL:
-
-- `profile-page-and-views` compared to `routes-layout-controllers`:
-- github.com
-  - Great job!
-- any
-  - Not quite. Make sure the URL looks like: `github.com/[YOUR_GITHUB_USERNAME]/pg-industrial/pull/X`
-{: .free_text #pr_url title="Pull request URL" points="1" answer="1" }
 
 ---
 
