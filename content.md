@@ -1532,7 +1532,23 @@ git push
 
 [See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
 
-Don't forget to open a pull request on GitHub for this branch!
+## Open and submit your pull request
+
+Open a pull request on GitHub for the `profile-page-and-views` branch. The **base** branch should be `routes-layout-controllers` (the branch from the previous lesson).
+
+<div class="alert alert-info">
+
+Need a refresher on opening a PR? [Watch this short video demonstration.](https://share.descript.com/view/RLP4apAu5pp) And when you're ready to merge: [see the notes in our Git CLI lesson](https://learn.firstdraft.com/lessons/196-git-cli#merging-branches).
+</div>
+
+Submit your pull request URL:
+
+- `profile-page-and-views` compared to `routes-layout-controllers`:
+- github.com
+  - Great job!
+- any
+  - Not quite. Make sure the URL looks like: `github.com/[YOUR_GITHUB_USERNAME]/pg-industrial/pull/X`
+{: .free_text #pr_url title="Pull request URL" points="1" answer="1" }
 
 ---
 
