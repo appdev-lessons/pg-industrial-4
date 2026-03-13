@@ -32,7 +32,7 @@ If you need a reference while you work, you can visit [my pull request](#my-pull
 
 ## Custom image CSS
 
-Before we start building views, note that `app/assets/stylesheets/custom-image.css` is already included in your project. It defines `.img-cover`, `.img-small`, `.img-medium`, and `.img-large` classes that we'll use throughout our view templates for avatars and profile images. You don't need to create this file — it's already there.
+Before we start building views, note that `app/assets/stylesheets/custom-image.css` is already included in your project. It defines `.img-cover`, `.img-small`, `.img-medium`, and `.img-large` classes that we'll use throughout our view templates for avatars and profile images. You don't need to create this file; it's already there.
 
 Now let's set up our branch and commit. This initial commit just establishes the branch:
 
@@ -101,7 +101,7 @@ Create `app/views/layouts/_list_group.html.erb`:
 ```
 {: filename="app/views/layouts/_list_group.html.erb" }
 
-When you pass `layout: "layouts/list_group"` to a `render partial: ... collection:` call, Rails wraps each rendered partial in this layout. The `<%= yield %>` is where the partial's content gets inserted. This keeps our view code DRY — we define the wrapping `<li>` once and reuse it everywhere.
+When you pass `layout: "layouts/list_group"` to a `render partial: ... collection:` call, Rails wraps each rendered partial in this layout. The `<%= yield %>` is where the partial's content gets inserted. This keeps our view code DRY by defining the wrapping `<li>` once and reusing it everywhere.
 
 ## Follow/unfollow partial
 
@@ -202,7 +202,7 @@ Comments appear below every photo. Let's build the comment display and the form 
 
 Each comment renders with the author's avatar, display name, username, time, comment body, and a dropdown for edit/delete. Replace the scaffold-generated `app/views/comments/_comment.html.erb`. We'll build it in two parts.
 
-Start with the outer structure, avatar, author info, and comment body. Notice the `<li>` uses `dom_id(comment)` (e.g., `comment_42`) as its HTML id — this is important for Capybara tests that use `within("#comment_42")` to scope actions to a specific comment:
+Start with the outer structure, avatar, author info, and comment body. Notice the `<li>` uses `dom_id(comment)` (e.g., `comment_42`) as its HTML id. This is important for Capybara tests that use `within("#comment_42")` to scope actions to a specific comment:
 
 ```erb{1-21}
 <li id="<%= dom_id(comment) %>" class="list-group-item">
@@ -580,7 +580,7 @@ The `render partial: ... collection: ... layout:` pattern renders the photo card
 
 <div class="alert alert-success">
 
-**CHECK**: Visit `/` or `/<username>/feed`. You should see real photo cards with images, like buttons, comment forms, and follow buttons! Try liking a photo — the heart fills in. Try adding a comment — it appears below the photo. This is the moment the app comes alive.
+**CHECK**: Visit `/` or `/<username>/feed`. You should see real photo cards with images, like buttons, comment forms, and follow buttons! Try liking a photo and watch the heart fill in. Try adding a comment and see it appear below the photo. This is the moment the app comes alive.
 </div>
 
 Commit:
@@ -613,7 +613,7 @@ Replace `app/views/users/discover.html.erb`:
 ```
 {: filename="app/views/users/discover.html.erb" }
 
-Nearly identical to the feed page — it reuses the same photo card partial. The difference is where `@photos` comes from: the `feed` association traverses User → Leaders → Own Photos, while `discover` traverses User → Leaders → Liked Photos. All that complex SQL is handled by the associations we defined in an earlier lesson.
+This is nearly identical to the feed page and reuses the same photo card partial. The difference is where `@photos` comes from: the `feed` association traverses User → Leaders → Own Photos, while `discover` traverses User → Leaders → Liked Photos. All that complex SQL is handled by the associations we defined in an earlier lesson.
 
 <div class="alert alert-success">
 
@@ -914,7 +914,7 @@ Replace `app/views/users/followers.html.erb`:
 ```
 {: filename="app/views/users/followers.html.erb" }
 
-The `link_to :back` generates a link to the previous page using the browser's referrer — a convenient Rails helper. Each follower is rendered using our `_list_item` partial, and we show a friendly message if the user has no followers.
+The `link_to :back` generates a link to the previous page using the browser's referrer, a convenient Rails helper. Each follower is rendered using our `_list_item` partial, and we show a friendly message if the user has no followers.
 
 <div class="alert alert-success">
 
@@ -1249,7 +1249,7 @@ The `if: :devise_controller?` condition means this `before_action` only runs whe
 
 By default, Devise only permits `email`, `password`, and `password_confirmation`. Since we added custom columns to our User model, we need to explicitly tell Devise to allow them through. The `:sign_up` sanitizer controls which fields are accepted during registration, and the `:account_update` sanitizer controls which fields are accepted when editing a profile.
 
-Notice that `:sign_up` only permits `:display_name` and `:username`, since we don't want users uploading avatars or setting bios during registration. Those are for the account update form. Also note `:remove_profile_banner` in the account update list — this is the virtual attribute we set up on the User model in an earlier lesson for removing the banner image via a checkbox.
+Notice that `:sign_up` only permits `:display_name` and `:username`, since we don't want users uploading avatars or setting bios during registration. Those are for the account update form. Also note `:remove_profile_banner` in the account update list. This is the virtual attribute we set up on the User model in an earlier lesson for removing the banner image via a checkbox.
 
 ### Sign in view
 
@@ -1427,7 +1427,7 @@ This pattern repeats for every field group:
 
 This gives users immediate visual feedback: green borders on valid fields, red borders and error messages on invalid ones. See the [Bootstrap validation docs](https://getbootstrap.com/docs/5.3/forms/validation/) for more on the `is-valid`, `is-invalid`, and `invalid-feedback` classes.
 
-Use this same pattern for the **email**, **password**, **password\_confirmation**, **username**, **display\_name**, **bio**, and **website** fields, adjusting the field names and input types accordingly. Separate the password section from the profile info section with `<hr class="mt-4">` dividers. Current password is required by Devise for any changes — this is a security feature to prevent unauthorized edits from hijacked sessions.
+Use this same pattern for the **email**, **password**, **password\_confirmation**, **username**, **display\_name**, **bio**, and **website** fields, adjusting the field names and input types accordingly. Separate the password section from the profile info section with `<hr class="mt-4">` dividers. Current password is required by Devise for any changes. This is a security feature to prevent unauthorized edits from hijacked sessions.
 
 The avatar field is unique because it uses `file_field` with a preview of the current avatar above it:
 
