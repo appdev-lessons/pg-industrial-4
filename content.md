@@ -242,7 +242,7 @@ The photo itself uses `img-fluid w-100` to fill the card width responsively. Bel
 
 ### Action buttons
 
-On the left side, we render the like button (a separate partial) and a comment icon linking to the photo's show page. On the right side, a Bootstrap dropdown menu with three options:
+On the left side, we render the like button (a separate partial) and a comment icon linking to the photo's show page. On the right side, a [Bootstrap dropdown](https://getbootstrap.com/docs/5.3/components/dropdowns/) menu with three options:
 
 - **Edit**: links to the edit page
 - **Delete**: sends a DELETE request via `button_to`
@@ -250,7 +250,7 @@ On the left side, we render the like button (a separate partial) and a comment i
 
 ### Caption and comments
 
-The caption area shows the owner's display name, username, a relative timestamp (via `time_ago_in_words`), and the caption text. Below that, we render all comments using `render photo.comments.default_order` (which uses the `default_order` scope from an earlier lesson to show oldest-first), followed by a comment form for adding a new comment.
+The caption area shows the owner's display name, username, a relative timestamp (via `time_ago_in_words`), and the caption text. Below that, we render all comments in a [`list-group`](https://getbootstrap.com/docs/5.3/components/list-group/) using `render photo.comments.default_order` (which uses the `default_order` scope from an earlier lesson to show oldest-first), followed by a comment form for adding a new comment.
 
 <aside markdown="1">
 Notice that `render photo.comments.default_order` uses Rails' convention: when you pass an ActiveRecord collection to `render`, Rails automatically looks for a partial named after the model (`comments/_comment.html.erb`) and renders it once for each record, passing the local variable `comment`. This is equivalent to `render partial: "comments/comment", collection: photo.comments.default_order`.
@@ -651,7 +651,7 @@ The avatar uses `image_tag` with our custom `img-cover img-medium` classes for c
 </h1>
 ```
 
-We display `display_name` if present, otherwise fall back to `username`. The private badge and follow/unfollow button sit on the right side of the `<h1>` using flexbox.
+We display `display_name` if present, otherwise fall back to `username`. The private [badge](https://getbootstrap.com/docs/5.3/components/badge/) and follow/unfollow button sit on the right side of the `<h1>` using [flexbox utilities](https://getbootstrap.com/docs/5.3/utilities/flex/).
 
 ### Profile stats
 
@@ -782,7 +782,7 @@ Create `app/views/users/_list_item.html.erb`:
 ```
 {: filename="app/views/users/_list_item.html.erb" }
 
-This uses the Bootstrap flex media object pattern: avatar on the left, user info and follow button on the right, with the bio below. The display name links to the user's profile page using our vanity URL route.
+This uses the [Bootstrap flex](https://getbootstrap.com/docs/5.3/utilities/flex/) media object pattern: avatar on the left, user info and follow button on the right, with the bio below. The display name links to the user's profile page using our vanity URL route.
 
 ## Followers page
 
@@ -1112,7 +1112,7 @@ The default Devise sign in page has a "Log in" heading and button. Our tests exp
 ```
 {: filename="app/views/users/sessions/new.html.erb" }
 
-The main changes from the default: we changed "Log in" to "Sign in" in both the heading and submit button, added `class: "form-control"` to inputs for Bootstrap styling, and added `class: "btn btn-primary"` to the submit button.
+The main changes from the default: we changed "Log in" to "Sign in" in both the heading and submit button, added `class: "form-control"` to inputs for [Bootstrap form styling](https://getbootstrap.com/docs/5.3/forms/form-control/), and added `class: "btn btn-primary"` to the submit button.
 
 ### Sign up view
 
@@ -1165,7 +1165,7 @@ The key additions are the `display_name` and `username` fields between the email
 
 ### Settings / profile edit view
 
-The edit profile form is the most complex Devise view. It needs fields for changing the password, updating profile information (username, display name, bio, website, private toggle), and uploading images (avatar, profile banner). It also includes Bootstrap validation feedback that shows green/red borders on fields after a failed submission.
+The edit profile form is the most complex Devise view. It needs fields for changing the password, updating profile information (username, display name, bio, website, private toggle), and uploading images (avatar, profile banner). It also includes [Bootstrap validation feedback](https://getbootstrap.com/docs/5.3/forms/validation/) that shows green/red borders on fields after a failed submission.
 
 Replace the generated `app/views/users/registrations/edit.html.erb` with:
 
@@ -1521,7 +1521,7 @@ This is a large form, so let's understand the validation pattern it uses. Each f
 4. Render the field with the computed class.
 5. If the field was invalid, display the error messages in a `div.invalid-feedback`.
 
-This pattern gives users immediate visual feedback: green borders on valid fields, red borders and error messages on invalid ones.
+This pattern gives users immediate visual feedback: green borders on valid fields, red borders and error messages on invalid ones. See the [Bootstrap validation docs](https://getbootstrap.com/docs/5.3/forms/validation/) for more on the `is-valid`, `is-invalid`, and `invalid-feedback` classes.
 
 <aside markdown="1">
 The `novalidate: true` in the form options disables the browser's built-in HTML5 validation. We do this because we want to use our own server-side validation with Bootstrap's styling instead of the browser's default (and inconsistent) validation popups.
