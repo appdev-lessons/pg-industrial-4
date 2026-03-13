@@ -154,7 +154,8 @@ We only show the "Pinned" badge when we're on the owner's profile page. The `cur
 
 Next, add the photo owner's avatar, username link, and a follow/unfollow button:
 
-```erb{4-11}
+```erb{5-12}
+  <!-- ... -->
       Pinned
     </div>
   <% end %>
@@ -176,7 +177,8 @@ We reuse the `follow_requests/follow_unfollow` partial (which we'll create short
 
 Display the photo image and a link showing the likes count:
 
-```erb{4-11}
+```erb{5-12}
+  <!-- ... -->
     <%= render "follow_requests/follow_unfollow", sender: current_user, recipient: photo.owner %>
   </div>
 
@@ -199,7 +201,8 @@ The photo uses `img-fluid w-100` to fill the card width responsively. Below it, 
 
 Add the like button, comment link, and a [Bootstrap dropdown](https://getbootstrap.com/docs/5.3/components/dropdowns/) menu for edit/delete/pin:
 
-```erb{4-37}
+```erb{5-38}
+  <!-- ... -->
     </span>
   </div>
 
@@ -251,7 +254,8 @@ On the left side, we render the like button (a separate partial) and a comment i
 
 Finally, add the caption area with the owner's info and timestamp, followed by the comments list and comment form:
 
-```erb{4-26}
+```erb{5-27}
+  <!-- ... -->
     </div>
   </div>
 
@@ -403,7 +407,8 @@ This uses the Bootstrap flex media object pattern: a flex container with the ava
 
 Next, add the dropdown menu at the bottom-right for edit and delete actions:
 
-```erb{5-30}
+```erb{6-31}
+        <!-- ... -->
         <p class="mb-0">
           <%= comment.body %>
         </p>
@@ -509,7 +514,8 @@ First, the guard clause, lookup, and the two states for when a follow request al
 
 If no follow request exists, render the follow request form:
 
-```erb{4-8}
+```erb{5-9}
+    <!-- ... -->
           Following
         <% end %>
       <% end %>
@@ -588,7 +594,8 @@ The profile banner uses a `div` with a CSS `background-image` property, but only
 
 Next, add the avatar image that overlaps the banner:
 
-```erb{5}
+```erb{6}
+<!-- ... -->
   <div class="container-fluid py-5">
   </div>
 </div>
@@ -605,7 +612,8 @@ The avatar uses `image_tag` with our custom `img-cover img-medium` classes for c
 
 Add the display name heading with a private [badge](https://getbootstrap.com/docs/5.3/components/badge/) and follow/unfollow button on the right using [flexbox utilities](https://getbootstrap.com/docs/5.3/utilities/flex/):
 
-```erb{3-18}
+```erb{4-19}
+<!-- ... -->
 <%= image_tag @user.avatar_image, class: "me-3 rounded-circle img-cover img-medium border border-light border-3", style: "margin-top: -6rem;" %>
 
 <h1 class="d-flex justify-content-between">
@@ -634,7 +642,8 @@ We display `display_name` if present, otherwise fall back to `username`.
 
 Add the followers, following, pending, and posts counts, each linking to their respective pages:
 
-```erb{4-40}
+```erb{5-41}
+<!-- ... -->
   @<%= @user.username %>
 </h4>
 
@@ -689,7 +698,8 @@ A few details to notice:
 
 Add the user's bio and website link:
 
-```erb{4-10}
+```erb{5-11}
+<!-- ... -->
   posts
 </span>
 
@@ -708,7 +718,8 @@ Add the user's bio and website link:
 
 Finally, add [Bootstrap 5's JavaScript-powered tabs](https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior) for Posts and Likes:
 
-```erb{3-29}
+```erb{4-30}
+<!-- ... -->
 <hr>
 
 <ul class="nav nav-underline mb-3" id="myTab" role="tablist">
@@ -958,7 +969,8 @@ The header follows the same structure as the followers and following pages:
 
 Next, the loop iterates over follow requests (not users) so we can build forms for each one. The user info layout mirrors `_list_item`, but instead of a Follow/Unfollow button, we show Accept and Reject forms:
 
-```erb{4-49}
+```erb{5-50}
+<!-- ... -->
   <% end %>
 </div>
 
@@ -1021,7 +1033,8 @@ Each form includes `hidden_field :recipient_id` and `hidden_field :status` to pa
 
 Finally, close the loop with the user's bio and an empty state message:
 
-```erb{4-19}
+```erb{5-20}
+            <!-- ... -->
               </div>
             </div>
 
@@ -1289,7 +1302,8 @@ The `was_validated` flag will be used by each field group to decide whether to s
 
 Each field in this form follows the same validation pattern. Here's how it looks for the `current_password` field:
 
-```erb{3-33}
+```erb{4-34}
+    <!-- ... -->
   <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: form_html_options) do |f| %>
 
     <div class="form-group">
@@ -1341,7 +1355,8 @@ Use this same pattern for the **email**, **password**, **password\_confirmation*
 
 The avatar field is unique because it uses `file_field` with a preview of the current avatar above it:
 
-```erb{9-13}
+```erb{10-14}
+    <!-- ... -->
     <hr class="mt-4">
 
     <div class="form-group">
@@ -1367,7 +1382,8 @@ The `accept: "image/*"` attribute restricts the file picker to image files only.
 
 The profile banner field also uses `file_field`, but adds a "Remove Profile Banner" checkbox:
 
-```erb{9-22}
+```erb{10-23}
+    <!-- ... -->
     </div>
 
     <div class="form-group">
@@ -1402,7 +1418,8 @@ The "Remove Profile Banner" checkbox uses the `remove_profile_banner` virtual at
 
 The private field uses a checkbox instead of a text input:
 
-```erb{7-10}
+```erb{8-11}
+    <!-- ... -->
     </div>
 
     <div class="form-group">
@@ -1423,7 +1440,8 @@ The private field uses a checkbox instead of a text input:
 
 Finally, close the form with an Update button and a Back link:
 
-```erb{3-11}
+```erb{4-12}
+    <!-- ... -->
     </div>
 
     <div class="d-grid">
