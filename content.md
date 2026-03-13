@@ -130,15 +130,32 @@ When you pass `layout: "layouts/list_group"` to a `render partial: ... collectio
 
 The photo card is the most important partial in the app. It renders a single photo with its owner's avatar, the image itself, like/comment counts, action buttons, caption, comments, and a comment form. This partial is reused on the profile page, feed, discover, and photo show pages.
 
-Replace the scaffold-generated `app/views/photos/_photo.html.erb` with:
+Replace the scaffold-generated `app/views/photos/_photo.html.erb`. We'll build this file section by section.
 
-```erb
+### Pinned indicator
+
+First, wrap the entire partial in a `dom_id` div and add the pinned indicator:
+
+```erb{2-7}
 <div id="<%= dom_id(photo) %>">
   <% if photo.pinned? && current_page?(user_path(photo.owner.username)) %>
     <div class="icon-link text-primary">
       <i class="fa-solid fa-thumbtack"></i>
       Pinned
     </div>
+  <% end %>
+  <%# ... %>
+```
+{: filename="app/views/photos/_photo.html.erb" }
+
+We only show the "Pinned" badge when we're on the owner's profile page. The `current_page?` helper checks whether the current URL matches the given path. This way, pinned photos get a visual indicator on profile pages but not on the feed or discover pages.
+
+### Owner info and follow button
+
+Next, add the photo owner's avatar, username link, and a follow/unfollow button:
+
+```erb{3-10}
+  <%# ... %>
   <% end %>
   <div class="h5 m-0 p-0 d-flex align-items-center justify-content-between mb-2">
     <div class="d-flex">
@@ -148,6 +165,18 @@ Replace the scaffold-generated `app/views/photos/_photo.html.erb` with:
     </div>
     <%= render "follow_requests/follow_unfollow", sender: current_user, recipient: photo.owner %>
   </div>
+  <%# ... %>
+```
+{: filename="app/views/photos/_photo.html.erb" }
+
+We reuse the `follow_requests/follow_unfollow` partial (which we'll create shortly) and pass `current_user` as the `sender` and `photo.owner` as the `recipient`.
+
+### Image and likes count
+
+Display the photo image and a link showing the likes count:
+
+```erb{2-9}
+  <%# ... %>
   <div>
     <%= image_tag photo.image, class: "img-fluid w-100" %>
   </div>
@@ -157,6 +186,18 @@ Replace the scaffold-generated `app/views/photos/_photo.html.erb` with:
       <%= "like".pluralize(photo.likes_count) %>
     </span>
   </div>
+  <%# ... %>
+```
+{: filename="app/views/photos/_photo.html.erb" }
+
+The photo uses `img-fluid w-100` to fill the card width responsively. Below it, the likes count links to the photo's likes page (the nested route `/photos/:id/likes`), and the `pluralize` helper outputs "1 like" or "3 likes" as appropriate.
+
+### Action buttons
+
+Add the like button, comment link, and a [Bootstrap dropdown](https://getbootstrap.com/docs/5.3/components/dropdowns/) menu for edit/delete/pin:
+
+```erb{2-32}
+  <%# ... %>
   <div class="d-flex justify-content-between">
     <div class="d-flex">
       <%= render "photos/likes", photo: photo %>
@@ -191,6 +232,22 @@ Replace the scaffold-generated `app/views/photos/_photo.html.erb` with:
       </div>
     </div>
   </div>
+  <%# ... %>
+```
+{: filename="app/views/photos/_photo.html.erb" }
+
+On the left side, we render the like button (a separate partial) and a comment icon linking to the photo's show page. The dropdown menu on the right has three options:
+
+- **Edit**: links to the edit page
+- **Delete**: sends a DELETE request via `button_to`
+- **Pin/Un-pin**: sends a PATCH request that toggles the `pinned` boolean. The `params: { photo: { pinned: !photo.pinned } }` syntax flips the current value.
+
+### Caption and comments
+
+Finally, add the caption area with the owner's info and timestamp, followed by the comments list and comment form:
+
+```erb{2-22}
+  <%# ... %>
   <p>
     <%= link_to user_path(photo.owner.username), class: "text-decoration-none" do %>
       <%= photo.owner.display_name %>
@@ -216,39 +273,6 @@ Replace the scaffold-generated `app/views/photos/_photo.html.erb` with:
 </div>
 ```
 {: filename="app/views/photos/_photo.html.erb" }
-
-There's a lot going on here, so let's break it down section by section.
-
-### Pinned indicator
-
-```erb
-<% if photo.pinned? && current_page?(user_path(photo.owner.username)) %>
-  <div class="icon-link text-primary">
-    <i class="fa-solid fa-thumbtack"></i>
-    Pinned
-  </div>
-<% end %>
-```
-
-We only show the "Pinned" badge when we're on the owner's profile page. The `current_page?` helper checks whether the current URL matches the given path. This way, pinned photos get a visual indicator on profile pages but not on the feed or discover pages.
-
-### Owner info and follow button
-
-The top of the card shows the photo owner's avatar, username, and a follow/unfollow button. We reuse the `follow_requests/follow_unfollow` partial (which we'll create shortly) and pass `current_user` as the `sender` and `photo.owner` as the `recipient`.
-
-### Image and likes count
-
-The photo itself uses `img-fluid w-100` to fill the card width responsively. Below it, the likes count links to the photo's likes page (the nested route `/photos/:id/likes`), and the `pluralize` helper outputs "1 like" or "3 likes" as appropriate.
-
-### Action buttons
-
-On the left side, we render the like button (a separate partial) and a comment icon linking to the photo's show page. On the right side, a [Bootstrap dropdown](https://getbootstrap.com/docs/5.3/components/dropdowns/) menu with three options:
-
-- **Edit**: links to the edit page
-- **Delete**: sends a DELETE request via `button_to`
-- **Pin/Un-pin**: sends a PATCH request that toggles the `pinned` boolean. The `params: { photo: { pinned: !photo.pinned } }` syntax flips the current value.
-
-### Caption and comments
 
 The caption area shows the owner's display name, username, a relative timestamp (via `time_ago_in_words`), and the caption text. Below that, we render all comments in a [`list-group`](https://getbootstrap.com/docs/5.3/components/list-group/) using `render photo.comments.default_order` (which uses the `default_order` scope from an earlier lesson to show oldest-first), followed by a comment form for adding a new comment.
 
@@ -512,18 +536,47 @@ Now we're ready to build the centerpiece of the app — the user profile page. T
 
 The route and controller action were set up in the previous lesson. The route `get ":username" => "users#show", as: :user` maps URLs like `/alice` to the `UsersController#show` action, which uses `find_by!(username: params[:username])` to look up the user.
 
-Create `app/views/users/show.html.erb`:
+Create `app/views/users/show.html.erb`. We'll build this file section by section.
 
-```erb
+### Title and profile banner
+
+Start with the page title and the profile banner area:
+
+```erb{1-6}
 <% content_for :title, "@#{@user.username}'s profile" %>
 
 <div class="p-5 mb-4 bg-body-tertiary img-cover" style="<%= "background-image: url('#{url_for(@user.profile_banner)}')" if @user.profile_banner.attached? %>">
   <div class="container-fluid py-5">
   </div>
 </div>
+<%# ... %>
+```
+{: filename="app/views/users/show.html.erb" }
+
+The profile banner uses a `div` with a CSS `background-image` property, but only if the user has a banner attached. We use `url_for()` to generate the Active Storage URL. If no banner is attached, the div shows the `bg-body-tertiary` background color as a placeholder.
+
+### Avatar
+
+Next, add the avatar image that overlaps the banner:
+
+```erb{3}
+<%# ... %>
+</div>
 
 <%= image_tag @user.avatar_image, class: "me-3 rounded-circle img-cover img-medium border border-light border-3", style: "margin-top: -6rem;" %>
 
+<%# ... %>
+```
+{: filename="app/views/users/show.html.erb" }
+
+The avatar uses `image_tag` with our custom `img-cover img-medium` classes for consistent sizing. The `style: "margin-top: -6rem;"` pulls the avatar up to overlap with the banner area. We don't need to check `attached?` for the avatar because our `before_create :set_default_avatar` callback ensures every user always has one.
+
+### Display name, private badge, and follow button
+
+Add the display name heading with a private [badge](https://getbootstrap.com/docs/5.3/components/badge/) and follow/unfollow button on the right using [flexbox utilities](https://getbootstrap.com/docs/5.3/utilities/flex/):
+
+```erb{2-16}
+<%# ... %>
 <h1 class="d-flex justify-content-between">
   <%= @user.display_name || @user.username %>
   <div class="d-flex justify-content-between">
@@ -540,7 +593,18 @@ Create `app/views/users/show.html.erb`:
 <h4>
   @<%= @user.username %>
 </h4>
+<%# ... %>
+```
+{: filename="app/views/users/show.html.erb" }
 
+We display `display_name` if present, otherwise fall back to `username`.
+
+### Profile stats
+
+Add the followers, following, pending, and posts counts, each linking to their respective pages:
+
+```erb{2-36}
+<%# ... %>
 <span>
   <%= link_to followers_path(@user.username), class: "text-decoration-none" do %>
     <span class="text-primary fw-bold"><%= @user.followers.count %></span>
@@ -578,7 +642,22 @@ Create `app/views/users/show.html.erb`:
   </span>
   posts
 </span>
+<%# ... %>
+```
+{: filename="app/views/users/show.html.erb" }
 
+A few details to notice:
+
+- We use `link_to ... do ... end` (block form) to wrap both the count number and the label text inside a single link.
+- The "pending" count only shows when `current_user == @user && @user.private?`, since you can only see your own pending requests, and only if your account is private.
+- We use `@user.photos_count` (the counter cache column) instead of `@user.own_photos.count` to avoid an extra database query.
+
+### Bio and website
+
+Add the user's bio and website link:
+
+```erb{2-6}
+<%# ... %>
 <p class="mt-2">
   <%= @user.bio %>
 </p>
@@ -586,7 +665,16 @@ Create `app/views/users/show.html.erb`:
 <%= link_to @user.website, @user.website, target: "_blank" %>
 
 <hr>
+<%# ... %>
+```
+{: filename="app/views/users/show.html.erb" }
 
+### Tabbed interface
+
+Finally, add [Bootstrap 5's JavaScript-powered tabs](https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior) for Posts and Likes:
+
+```erb{2-30}
+<%# ... %>
 <ul class="nav nav-underline mb-3" id="myTab" role="tablist">
   <li class="nav-item" role="presentation">
     <button class="nav-link active" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts-tab-pane" type="button" role="tab" aria-controls="posts-tab-pane" aria-selected="true">Posts <span class="badge text-bg-secondary"><%= @user.photos_count %></span></button>
@@ -617,53 +705,7 @@ Create `app/views/users/show.html.erb`:
 ```
 {: filename="app/views/users/show.html.erb" }
 
-This is a large file, so let's walk through each section.
-
-### Profile banner and avatar
-
-```erb
-<div class="p-5 mb-4 bg-body-tertiary img-cover"
-  style="<%= "background-image: url('#{url_for(@user.profile_banner)}')" if @user.profile_banner.attached? %>">
-  <div class="container-fluid py-5">
-  </div>
-</div>
-
-<%= image_tag @user.avatar_image,
-  class: "me-3 rounded-circle img-cover img-medium border border-light border-3",
-  style: "margin-top: -6rem;" %>
-```
-
-The profile banner uses a `div` with a CSS `background-image` property, but only if the user has a banner attached. We use `url_for()` to generate the Active Storage URL. If no banner is attached, the div shows the `bg-body-tertiary` background color as a placeholder.
-
-The avatar uses `image_tag` with our custom `img-cover img-medium` classes for consistent sizing. The `style: "margin-top: -6rem;"` pulls the avatar up to overlap with the banner area. We don't need to check `attached?` for the avatar because our `before_create :set_default_avatar` callback ensures every user always has one.
-
-### Display name, private badge, and follow button
-
-```erb
-<h1 class="d-flex justify-content-between">
-  <%= @user.display_name || @user.username %>
-  <div class="d-flex justify-content-between">
-    <% if @user.private %>
-      <span class="...">Private <i class="fa-solid fa-lock"></i></span>
-    <% end %>
-    <%= render "follow_requests/follow_unfollow", sender: current_user, recipient: @user %>
-  </div>
-</h1>
-```
-
-We display `display_name` if present, otherwise fall back to `username`. The private [badge](https://getbootstrap.com/docs/5.3/components/badge/) and follow/unfollow button sit on the right side of the `<h1>` using [flexbox utilities](https://getbootstrap.com/docs/5.3/utilities/flex/).
-
-### Profile stats
-
-The followers, following, pending, and posts counts each link to their respective pages (using the route helpers from the previous lesson). A few details to notice:
-
-- We use `link_to ... do ... end` (block form) to wrap both the count number and the label text inside a single link.
-- The "pending" count only shows when `current_user == @user && @user.private?`, since you can only see your own pending requests, and only if your account is private.
-- We use `@user.photos_count` (the counter cache column) instead of `@user.own_photos.count` to avoid an extra database query.
-
-### Tabbed interface
-
-The tabs use [Bootstrap 5's JavaScript-powered tabs](https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior). The `<button>` elements have `data-bs-toggle="tab"` and `data-bs-target` attributes that tell Bootstrap which content pane to show when clicked. No custom JavaScript needed; Bootstrap handles it.
+The `<button>` elements have `data-bs-toggle="tab"` and `data-bs-target` attributes that tell Bootstrap which content pane to show when clicked. No custom JavaScript needed; Bootstrap handles it.
 
 In the **Posts** tab pane, we render pinned photos first, then unpinned photos. This uses the `pinned` and `unpinned` scopes we defined on the Photo model in an earlier lesson. Each photo is wrapped in a list group item using our `layouts/list_group` layout partial.
 
