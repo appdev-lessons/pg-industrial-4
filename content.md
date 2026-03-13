@@ -28,6 +28,8 @@ Now create a new branch from there:
 git checkout -b profile-page-and-views
 ```
 
+If you need a reference while you work, you can visit [my pull request](#my-pull-request){: target="_self" } below. Individual commits are also linked throughout the lesson for convenience.
+
 ## Custom image CSS
 
 Before we start building views, let's add a small CSS file that defines some reusable image sizing classes. These will be used throughout our partials for avatars and profile images.
@@ -100,7 +102,7 @@ It should _not_ contain `appdev-projects` in the URL. If it does, you submitted 
 You don't need to merge your branches now, but when you're ready: [see the notes in our Git CLI lesson](/lessons/196-git-cli#merging-branches).
 </aside>
 
-Any additional commits you push to this branch will automatically show up on the pull request. As you work through the rest of this lesson, you can periodically check the PR diff on GitHub in the "Changes" tab to get a comprehensive overview of everything that has changed so far.
+Any additional commits you push to this branch will automatically show up on the pull request. As you work through the rest of this lesson, you can periodically check the PR diff on GitHub in the "Files changed" tab to get a comprehensive overview of everything that has changed so far.
 
 Submit your pull request URL:
 
@@ -1567,6 +1569,10 @@ git push
 ```
 
 [See my commit for this step.](https://github.com/bpurinton/pg-industrial/commit/)
+
+## My pull request
+
+You can visit the full diff of changes on my [pull request](https://github.com/bpurinton/pg-industrial/pull/4) in the [Files changed tab](https://github.com/bpurinton/pg-industrial/pull/4/files) if you need to compare your work to a working solution.
 
 ---
 
