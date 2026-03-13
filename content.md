@@ -144,7 +144,7 @@ First, wrap the entire partial in a `dom_id` div and add the pinned indicator:
       Pinned
     </div>
   <% end %>
-  <%# ... %>
+  <!-- ... -->
 ```
 {: filename="app/views/photos/_photo.html.erb" }
 
@@ -155,7 +155,7 @@ We only show the "Pinned" badge when we're on the owner's profile page. The `cur
 Next, add the photo owner's avatar, username link, and a follow/unfollow button:
 
 ```erb{3-10}
-  <%# ... %>
+  <!-- ... -->
   <% end %>
   <div class="h5 m-0 p-0 d-flex align-items-center justify-content-between mb-2">
     <div class="d-flex">
@@ -165,7 +165,7 @@ Next, add the photo owner's avatar, username link, and a follow/unfollow button:
     </div>
     <%= render "follow_requests/follow_unfollow", sender: current_user, recipient: photo.owner %>
   </div>
-  <%# ... %>
+  <!-- ... -->
 ```
 {: filename="app/views/photos/_photo.html.erb" }
 
@@ -176,7 +176,7 @@ We reuse the `follow_requests/follow_unfollow` partial (which we'll create short
 Display the photo image and a link showing the likes count:
 
 ```erb{2-9}
-  <%# ... %>
+  <!-- ... -->
   <div>
     <%= image_tag photo.image, class: "img-fluid w-100" %>
   </div>
@@ -186,7 +186,7 @@ Display the photo image and a link showing the likes count:
       <%= "like".pluralize(photo.likes_count) %>
     </span>
   </div>
-  <%# ... %>
+  <!-- ... -->
 ```
 {: filename="app/views/photos/_photo.html.erb" }
 
@@ -197,7 +197,7 @@ The photo uses `img-fluid w-100` to fill the card width responsively. Below it, 
 Add the like button, comment link, and a [Bootstrap dropdown](https://getbootstrap.com/docs/5.3/components/dropdowns/) menu for edit/delete/pin:
 
 ```erb{2-32}
-  <%# ... %>
+  <!-- ... -->
   <div class="d-flex justify-content-between">
     <div class="d-flex">
       <%= render "photos/likes", photo: photo %>
@@ -232,7 +232,7 @@ Add the like button, comment link, and a [Bootstrap dropdown](https://getbootstr
       </div>
     </div>
   </div>
-  <%# ... %>
+  <!-- ... -->
 ```
 {: filename="app/views/photos/_photo.html.erb" }
 
@@ -247,7 +247,7 @@ On the left side, we render the like button (a separate partial) and a comment i
 Finally, add the caption area with the owner's info and timestamp, followed by the comments list and comment form:
 
 ```erb{2-22}
-  <%# ... %>
+  <!-- ... -->
   <p>
     <%= link_to user_path(photo.owner.username), class: "text-decoration-none" do %>
       <%= photo.owner.display_name %>
@@ -362,9 +362,11 @@ This partial is used on the "liked by" page (`/photos/:id/likes`) to show each u
 
 ## Comment partial
 
-Each comment renders with the author's avatar, display name, username, time, comment body, and a dropdown for edit/delete. Replace the scaffold-generated `app/views/comments/_comment.html.erb`:
+Each comment renders with the author's avatar, display name, username, time, comment body, and a dropdown for edit/delete. Replace the scaffold-generated `app/views/comments/_comment.html.erb`. We'll build it in two parts.
 
-```erb
+Start with the outer structure, avatar, author info, and comment body. Notice the `<li>` uses `dom_id(comment)` (e.g., `comment_42`) as its HTML id — this is important for Capybara tests that use `within("#comment_42")` to scope actions to a specific comment:
+
+```erb{1-21}
 <li id="<%= dom_id(comment) %>" class="list-group-item">
   <div class="p-3 pb-0">
     <div class="d-flex">
@@ -384,6 +386,18 @@ Each comment renders with the author's avatar, display name, username, time, com
         </h6>
         <p class="mb-0">
           <%= comment.body %>
+        </p>
+
+        <!-- ... -->
+```
+{: filename="app/views/comments/_comment.html.erb" }
+
+This uses the Bootstrap flex media object pattern: a flex container with the avatar (`flex-shrink-0`) on the left and the content (`flex-grow-1`) on the right.
+
+Next, add the dropdown menu at the bottom-right for edit and delete actions:
+
+```erb{3-19}
+        <!-- ... -->
         </p>
 
         <div class="d-flex justify-content-end">
@@ -414,8 +428,6 @@ Each comment renders with the author's avatar, display name, username, time, com
 </li>
 ```
 {: filename="app/views/comments/_comment.html.erb" }
-
-This uses the same Bootstrap flex media object pattern. The dropdown menu at the bottom-right gives the user Edit and Delete options. Notice that the `<li>` uses `dom_id(comment)` (e.g., `comment_42`) as its HTML id. This is important for Capybara tests that use `within("#comment_42")` to scope actions to a specific comment.
 
 ## Comment form
 
@@ -457,9 +469,11 @@ This partial handles three states for the relationship between two users:
 2. **Requested**: the sender has sent a pending follow request
 3. **Follow**: no follow request exists yet
 
-Create `app/views/follow_requests/_follow_unfollow.html.erb`:
+Create `app/views/follow_requests/_follow_unfollow.html.erb`. We'll walk through the logic in two parts.
 
-```erb
+First, the guard clause, lookup, and the two states for when a follow request already exists:
+
+```erb{2-16}
 <div>
   <% unless sender == recipient %>
     <% follow_request = sender.sent_follow_requests.find_by(recipient: recipient) %>
@@ -476,6 +490,20 @@ Create `app/views/follow_requests/_follow_unfollow.html.erb`:
           Following
         <% end %>
       <% end %>
+    <!-- ... -->
+```
+{: filename="app/views/follow_requests/_follow_unfollow.html.erb" }
+
+- `unless sender == recipient`: you shouldn't see a follow button on your own profile!
+- We look up whether the sender has an existing follow request for this recipient using `find_by`.
+- If a request exists and is `pending?` (from our enum), we show a "Requested" button with an envelope icon. Clicking it sends a DELETE request to cancel the follow request.
+- If a request exists and is `accepted?`, we show a "Following" button with a check icon. Clicking it sends a DELETE request to unfollow.
+
+If no follow request exists, render the follow request form:
+
+```erb{3}
+    <!-- ... -->
+    <% end %>
     <% else %>
       <%= render "follow_requests/form", follow_request: recipient.received_follow_requests.build %>
     <% end %>
@@ -483,14 +511,6 @@ Create `app/views/follow_requests/_follow_unfollow.html.erb`:
 </div>
 ```
 {: filename="app/views/follow_requests/_follow_unfollow.html.erb" }
-
-Let's walk through this logic:
-
-- First, `unless sender == recipient`: you shouldn't see a follow button on your own profile!
-- We look up whether the sender has an existing follow request for this recipient using `find_by`.
-- If a request exists and is `pending?` (from our enum), we show a "Requested" button with an envelope icon. Clicking it sends a DELETE request to cancel the follow request.
-- If a request exists and is `accepted?`, we show a "Following" button with a check icon. Clicking it sends a DELETE request to unfollow.
-- If no request exists, we render the follow request form, which shows a "Follow" button.
 
 The `pending?` and `accepted?` methods come for free from our `enum :status` declaration on the FollowRequest model in an earlier lesson.
 
@@ -549,7 +569,7 @@ Start with the page title and the profile banner area:
   <div class="container-fluid py-5">
   </div>
 </div>
-<%# ... %>
+<!-- ... -->
 ```
 {: filename="app/views/users/show.html.erb" }
 
@@ -560,12 +580,12 @@ The profile banner uses a `div` with a CSS `background-image` property, but only
 Next, add the avatar image that overlaps the banner:
 
 ```erb{3}
-<%# ... %>
+<!-- ... -->
 </div>
 
 <%= image_tag @user.avatar_image, class: "me-3 rounded-circle img-cover img-medium border border-light border-3", style: "margin-top: -6rem;" %>
 
-<%# ... %>
+<!-- ... -->
 ```
 {: filename="app/views/users/show.html.erb" }
 
@@ -576,7 +596,7 @@ The avatar uses `image_tag` with our custom `img-cover img-medium` classes for c
 Add the display name heading with a private [badge](https://getbootstrap.com/docs/5.3/components/badge/) and follow/unfollow button on the right using [flexbox utilities](https://getbootstrap.com/docs/5.3/utilities/flex/):
 
 ```erb{2-16}
-<%# ... %>
+<!-- ... -->
 <h1 class="d-flex justify-content-between">
   <%= @user.display_name || @user.username %>
   <div class="d-flex justify-content-between">
@@ -593,7 +613,7 @@ Add the display name heading with a private [badge](https://getbootstrap.com/doc
 <h4>
   @<%= @user.username %>
 </h4>
-<%# ... %>
+<!-- ... -->
 ```
 {: filename="app/views/users/show.html.erb" }
 
@@ -604,7 +624,7 @@ We display `display_name` if present, otherwise fall back to `username`.
 Add the followers, following, pending, and posts counts, each linking to their respective pages:
 
 ```erb{2-36}
-<%# ... %>
+<!-- ... -->
 <span>
   <%= link_to followers_path(@user.username), class: "text-decoration-none" do %>
     <span class="text-primary fw-bold"><%= @user.followers.count %></span>
@@ -642,7 +662,7 @@ Add the followers, following, pending, and posts counts, each linking to their r
   </span>
   posts
 </span>
-<%# ... %>
+<!-- ... -->
 ```
 {: filename="app/views/users/show.html.erb" }
 
@@ -657,7 +677,7 @@ A few details to notice:
 Add the user's bio and website link:
 
 ```erb{2-6}
-<%# ... %>
+<!-- ... -->
 <p class="mt-2">
   <%= @user.bio %>
 </p>
@@ -665,7 +685,7 @@ Add the user's bio and website link:
 <%= link_to @user.website, @user.website, target: "_blank" %>
 
 <hr>
-<%# ... %>
+<!-- ... -->
 ```
 {: filename="app/views/users/show.html.erb" }
 
@@ -674,7 +694,7 @@ Add the user's bio and website link:
 Finally, add [Bootstrap 5's JavaScript-powered tabs](https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior) for Posts and Likes:
 
 ```erb{2-30}
-<%# ... %>
+<!-- ... -->
 <ul class="nav nav-underline mb-3" id="myTab" role="tablist">
   <li class="nav-item" role="presentation">
     <button class="nav-link active" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts-tab-pane" type="button" role="tab" aria-controls="posts-tab-pane" aria-selected="true">Posts <span class="badge text-bg-secondary"><%= @user.photos_count %></span></button>
@@ -900,9 +920,11 @@ This follows the same pattern as the followers page but uses `@follows` (the use
 
 The pending page is more complex because it includes Accept and Reject buttons for each pending follow request. Unlike the followers and following pages that just list users, this page needs to iterate over follow requests (not users) so we can build forms to update each request's status.
 
-Create `app/views/users/pending.html.erb`:
+Create `app/views/users/pending.html.erb`. We'll build it in three parts.
 
-```erb
+The header follows the same structure as the followers and following pages:
+
+```erb{1-11}
 <% content_for :title, "Pending" %>
 
 <h1>Pending</h1>
@@ -914,7 +936,14 @@ Create `app/views/users/pending.html.erb`:
     Back
   <% end %>
 </div>
+<!-- ... -->
+```
+{: filename="app/views/users/pending.html.erb" }
 
+Next, the loop iterates over follow requests (not users) so we can build forms for each one. The user info layout mirrors `_list_item`, but instead of a Follow/Unfollow button, we show Accept and Reject forms:
+
+```erb{6-30}
+<!-- ... -->
 <div>
   <ul class="list-group list-group-flush">
     <% @pending.each do |follow_request| %>
@@ -960,7 +989,22 @@ Create `app/views/users/pending.html.erb`:
                   </div>
                 <% end %>
               </div>
+            </div>
+            <!-- ... -->
+```
+{: filename="app/views/users/pending.html.erb" }
 
+The key thing here is the two `form_with` calls for each follow request. Both forms submit a PATCH request to `FollowRequestsController#update`, but they send different `status` values:
+
+- The **Accept** form sends `status: "accepted"`, which triggers the `FollowRequest` to be accepted.
+- The **Reject** form sends `status: "rejected"`, which rejects it.
+
+Each form includes `hidden_field :recipient_id` and `hidden_field :status` to pass the necessary data. The `FollowRequestsController#update` action (set up in the previous lesson) handles updating the status accordingly.
+
+Finally, close the loop with the user's bio and an empty state message:
+
+```erb{3-14}
+            <!-- ... -->
             </div>
 
             <p class="mb-0">
@@ -980,13 +1024,6 @@ Create `app/views/users/pending.html.erb`:
 </div>
 ```
 {: filename="app/views/users/pending.html.erb" }
-
-The key thing here is the two `form_with` calls for each follow request. Both forms submit a PATCH request to `FollowRequestsController#update`, but they send different `status` values:
-
-- The **Accept** form sends `status: "accepted"`, which triggers the `FollowRequest` to be accepted.
-- The **Reject** form sends `status: "rejected"`, which rejects it.
-
-Each form includes `hidden_field :recipient_id` and `hidden_field :status` to pass the necessary data. The `FollowRequestsController#update` action (set up in the previous lesson) handles updating the status accordingly.
 
 <aside markdown="1">
 We can't reuse the `_list_item` partial here because we need the Accept/Reject buttons instead of the Follow/Unfollow button. When a partial doesn't quite fit, it's fine to inline the markup. Don't force a partial to do something it wasn't designed for.
@@ -1209,9 +1246,11 @@ The key additions are the `display_name` and `username` fields between the email
 
 The edit profile form is the most complex Devise view. It needs fields for changing the password, updating profile information (username, display name, bio, website, private toggle), and uploading images (avatar, profile banner). It also includes [Bootstrap validation feedback](https://getbootstrap.com/docs/5.3/forms/validation/) that shows green/red borders on fields after a failed submission.
 
-Replace the generated `app/views/users/registrations/edit.html.erb` with:
+Replace the generated `app/views/users/registrations/edit.html.erb`. We'll build this form section by section.
 
-```erb
+Start with the heading, a flag to track whether validation has occurred, and the form tag:
+
+```erb{3-8}
 <h2>Edit <%= resource_name.to_s.humanize %></h2>
 
 <div class="card-body">
@@ -1220,7 +1259,20 @@ Replace the generated `app/views/users/registrations/edit.html.erb` with:
   <% form_html_options = { method: :put, novalidate: true, class: "mb-3" } %>
 
   <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: form_html_options) do |f| %>
+    <!-- ... -->
+```
+{: filename="app/views/users/registrations/edit.html.erb" }
 
+<aside markdown="1">
+The `novalidate: true` disables the browser's built-in HTML5 validation. We do this because we want to use our own server-side validation with Bootstrap's styling instead of the browser's default (and inconsistent) validation popups.
+</aside>
+
+The `was_validated` flag will be used by each field group to decide whether to show green/red borders.
+
+Each field in this form follows the same validation pattern. Here's how it looks for the `current_password` field:
+
+```erb{2-28}
+    <!-- ... -->
     <div class="form-group">
       <% current_password_was_invalid = resource.errors.include?(:current_password) %>
 
@@ -1252,161 +1304,30 @@ Replace the generated `app/views/users/registrations/edit.html.erb` with:
     </div>
 
     <hr class="mt-4">
+    <!-- ... -->
+```
+{: filename="app/views/users/registrations/edit.html.erb" }
 
-    <div class="form-group">
-      <% email_was_invalid = resource.errors.include?(:email) %>
+This pattern repeats for every field group:
 
-      <% email_class = "form-control" %>
+1. Check if this specific field had an error: `resource.errors.include?(:field_name)`.
+2. Start with a base CSS class: `"form-control"`.
+3. If the form was submitted and validation failed (`was_validated`), add either `is-invalid` or `is-valid` to the class string.
+4. Render the field with the computed class.
+5. If the field was invalid, display the error messages in a `div.invalid-feedback`.
 
-      <% if was_validated %>
-        <% if email_was_invalid %>
-          <% email_class << " is-invalid" %>
-        <% else %>
-          <% email_class << " is-valid" %>
-        <% end %>
-      <% end %>
+This gives users immediate visual feedback: green borders on valid fields, red borders and error messages on invalid ones. See the [Bootstrap validation docs](https://getbootstrap.com/docs/5.3/forms/validation/) for more on the `is-valid`, `is-invalid`, and `invalid-feedback` classes.
 
-      <%= f.label :email %>
+Use this same pattern for the **email**, **password**, **password\_confirmation**, **username**, **display\_name**, **bio**, and **website** fields, adjusting the field names and input types accordingly. Separate the password section from the profile info section with `<hr class="mt-4">` dividers. Current password is required by Devise for any changes — this is a security feature to prevent unauthorized edits from hijacked sessions.
 
-      <%= f.email_field :email, autofocus: true, class: email_class %>
+The avatar field is unique because it uses `file_field` with a preview of the current avatar above it:
 
-      <% if email_was_invalid %>
-        <% resource.errors.full_messages_for(:email).each do |message| %>
-          <div class="invalid-feedback d-flex">
-            <%= message %>
-          </div>
-        <% end %>
-      <% end %>
-    </div>
-
-    <hr class="mt-4">
-
-    <div class="form-group">
-      <% password_was_invalid = resource.errors.include?(:password) %>
-
-      <% password_class = "form-control" %>
-
-      <% if was_validated %>
-        <% if password_was_invalid %>
-          <% password_class << " is-invalid" %>
-        <% else %>
-          <% password_class << " is-valid" %>
-        <% end %>
-      <% end %>
-
-      <%= f.label :password %>
-
-      <%= f.password_field :password, class: password_class, autocomplete: "off" %>
-
-      <% if password_was_invalid %>
-        <% resource.errors.full_messages_for(:password).each do |message| %>
-          <div class="invalid-feedback d-flex">
-            <%= message %>
-          </div>
-        <% end %>
-      <% end %>
-
-      <small class="form-text text-muted">
-        Leave blank if you don't want to change it.
-
-        <% if @minimum_password_length %>
-          <%= @minimum_password_length %> characters minimum.
-        <% end %>
-      </small>
-    </div>
-
-    <div class="form-group">
-      <% password_confirmation_was_invalid = resource.errors.include?(:password_confirmation) %>
-
-      <% password_confirmation_class = "form-control" %>
-
-      <% if was_validated %>
-        <% if password_confirmation_was_invalid %>
-          <% password_confirmation_class << " is-invalid" %>
-        <% else %>
-          <% password_confirmation_class << " is-valid" %>
-        <% end %>
-      <% end %>
-
-      <%= f.label :password_confirmation %>
-
-      <%= f.password_field :password_confirmation, class: password_confirmation_class, autocomplete: "off" %>
-
-      <% if password_confirmation_was_invalid %>
-        <% resource.errors.full_messages_for(:password_confirmation).each do |message| %>
-          <div class="invalid-feedback d-flex">
-            <%= message %>
-          </div>
-        <% end %>
-      <% end %>
-    </div>
-
-    <hr class="mt-4">
-
-    <div class="form-group">
-      <% username_was_invalid = resource.errors.include?(:username) %>
-
-      <% username_class = "form-control" %>
-
-      <% if was_validated %>
-        <% if username_was_invalid %>
-          <% username_class << " is-invalid" %>
-        <% else %>
-          <% username_class << " is-valid" %>
-        <% end %>
-      <% end %>
-
-      <%= f.label :username %>
-
-      <%= f.text_field :username, :class => username_class, :placeholder => "Enter username" %>
-
-      <% if username_was_invalid %>
-        <% resource.errors.full_messages_for(:username).each do |message| %>
-          <div class="invalid-feedback d-flex">
-            <%= message %>
-          </div>
-        <% end %>
-      <% end %>
-    </div>
-
-    <div class="form-group">
-      <% display_name_was_invalid = resource.errors.include?(:display_name) %>
-
-      <% display_name_class = "form-control" %>
-
-      <% if was_validated %>
-        <% if display_name_was_invalid %>
-          <% display_name_class << " is-invalid" %>
-        <% else %>
-          <% display_name_class << " is-valid" %>
-        <% end %>
-      <% end %>
-
-      <%= f.label :display_name %>
-
-      <%= f.text_field :display_name, :class => display_name_class, :placeholder => "Enter display name" %>
-
-      <% if display_name_was_invalid %>
-        <% resource.errors.full_messages_for(:display_name).each do |message| %>
-          <div class="invalid-feedback d-flex">
-            <%= message %>
-          </div>
-        <% end %>
-      <% end %>
-    </div>
-
+```erb{11-15}
+    <!-- ... -->
     <div class="form-group">
       <% avatar_image_was_invalid = resource.errors.include?(:avatar_image) %>
 
-      <% avatar_image_class = "form-control" %>
-
-      <% if was_validated %>
-        <% if avatar_image_was_invalid %>
-          <% avatar_image_class << " is-invalid" %>
-        <% else %>
-          <% avatar_image_class << " is-valid" %>
-        <% end %>
-      <% end %>
+      <!-- ... validation class logic same as above ... -->
 
       <%= f.label :avatar_image %>
 
@@ -1416,27 +1337,22 @@ Replace the generated `app/views/users/registrations/edit.html.erb` with:
         <%= f.file_field :avatar_image, class: avatar_image_class, accept: "image/*" %>
       </div>
 
-      <% if avatar_image_was_invalid %>
-        <% resource.errors.full_messages_for(:avatar_image).each do |message| %>
-          <div class="invalid-feedback d-flex">
-            <%= message %>
-          </div>
-        <% end %>
-      <% end %>
+      <!-- ... error messages same as above ... -->
     </div>
+    <!-- ... -->
+```
+{: filename="app/views/users/registrations/edit.html.erb" }
 
+The `accept: "image/*"` attribute restricts the file picker to image files only.
+
+The profile banner field also uses `file_field`, but adds a "Remove Profile Banner" checkbox:
+
+```erb{11-20}
+    <!-- ... -->
     <div class="form-group">
       <% profile_banner_was_invalid = resource.errors.include?(:profile_banner) %>
 
-      <% profile_banner_class = "form-control" %>
-
-      <% if was_validated %>
-        <% if profile_banner_was_invalid %>
-          <% profile_banner_class << " is-invalid" %>
-        <% else %>
-          <% profile_banner_class << " is-valid" %>
-        <% end %>
-      <% end %>
+      <!-- ... validation class logic same as above ... -->
 
       <%= f.label :profile_banner %>
 
@@ -1455,94 +1371,38 @@ Replace the generated `app/views/users/registrations/edit.html.erb` with:
         </div>
       <% end %>
 
-      <% if profile_banner_was_invalid %>
-        <% resource.errors.full_messages_for(:profile_banner).each do |message| %>
-          <div class="invalid-feedback d-flex">
-            <%= message %>
-          </div>
-        <% end %>
-      <% end %>
+      <!-- ... error messages same as above ... -->
     </div>
+    <!-- ... -->
+```
+{: filename="app/views/users/registrations/edit.html.erb" }
 
-    <div class="form-group">
-      <% bio_was_invalid = resource.errors.include?(:bio) %>
+The "Remove Profile Banner" checkbox uses the `remove_profile_banner` virtual attribute we defined on the User model in an earlier lesson. When checked and the form is submitted, the `after_save :purge_profile_banner` callback removes the banner from Cloudinary.
 
-      <% bio_class = "form-control" %>
+The private field uses a checkbox instead of a text input:
 
-      <% if was_validated %>
-        <% if bio_was_invalid %>
-          <% bio_class << " is-invalid" %>
-        <% else %>
-          <% bio_class << " is-valid" %>
-        <% end %>
-      <% end %>
-
-      <%= f.label :bio %>
-
-      <%= f.text_area :bio, :class => bio_class, :placeholder => "Enter bio" %>
-
-      <% if bio_was_invalid %>
-        <% resource.errors.full_messages_for(:bio).each do |message| %>
-          <div class="invalid-feedback d-flex">
-            <%= message %>
-          </div>
-        <% end %>
-      <% end %>
-    </div>
-
+```erb{6-9}
+    <!-- ... -->
     <div class="form-group">
       <% private_was_invalid = resource.errors.include?(:private) %>
 
-      <% private_class = "custom-control-input" %>
-
-      <% if was_validated %>
-        <% if private_was_invalid %>
-          <% private_class << " is-invalid" %>
-        <% else %>
-          <% private_class << " is-valid" %>
-        <% end %>
-      <% end %>
+      <!-- ... validation class logic (using "custom-control-input" as base class) ... -->
 
       <div class="custom-control custom-checkbox">
         <%= f.check_box :private, class: "#{private_class}" %>
         <%= f.label :private, class: "custom-control-label" %>
       </div>
 
-      <% if private_was_invalid %>
-        <% resource.errors.full_messages_for(:private).each do |message| %>
-          <div class="invalid-feedback d-flex">
-            <%= message %>
-          </div>
-        <% end %>
-      <% end %>
+      <!-- ... error messages same as above ... -->
     </div>
+    <!-- ... -->
+```
+{: filename="app/views/users/registrations/edit.html.erb" }
 
-    <div class="form-group">
-      <% website_was_invalid = resource.errors.include?(:website) %>
+Finally, close the form with an Update button and a Back link:
 
-      <% website_class = "form-control" %>
-
-      <% if was_validated %>
-        <% if website_was_invalid %>
-          <% website_class << " is-invalid" %>
-        <% else %>
-          <% website_class << " is-valid" %>
-        <% end %>
-      <% end %>
-
-      <%= f.label :website %>
-
-      <%= f.text_field :website, :class => website_class, :placeholder => "Enter website" %>
-
-      <% if website_was_invalid %>
-        <% resource.errors.full_messages_for(:website).each do |message| %>
-          <div class="invalid-feedback d-flex">
-            <%= message %>
-          </div>
-        <% end %>
-      <% end %>
-    </div>
-
+```erb{2-8}
+    <!-- ... -->
     <div class="d-grid">
       <%= f.submit "Update", class: "btn btn-outline-primary" %>
     </div>
@@ -1554,27 +1414,6 @@ Replace the generated `app/views/users/registrations/edit.html.erb` with:
 </div>
 ```
 {: filename="app/views/users/registrations/edit.html.erb" }
-
-This is a large form, so let's understand the validation pattern it uses. Each field group follows the same structure:
-
-1. Check if this specific field had an error: `resource.errors.include?(:field_name)`.
-2. Start with a base CSS class: `"form-control"`.
-3. If the form was submitted and validation failed (`was_validated`), add either `is-invalid` or `is-valid` to the class string.
-4. Render the field with the computed class.
-5. If the field was invalid, display the error messages in a `div.invalid-feedback`.
-
-This pattern gives users immediate visual feedback: green borders on valid fields, red borders and error messages on invalid ones. See the [Bootstrap validation docs](https://getbootstrap.com/docs/5.3/forms/validation/) for more on the `is-valid`, `is-invalid`, and `invalid-feedback` classes.
-
-<aside markdown="1">
-The `novalidate: true` in the form options disables the browser's built-in HTML5 validation. We do this because we want to use our own server-side validation with Bootstrap's styling instead of the browser's default (and inconsistent) validation popups.
-</aside>
-
-A few other things to note about this form:
-
-- **Avatar image** uses `f.file_field :avatar_image` with a preview of the current avatar above it. The `accept: "image/*"` attribute restricts the file picker to image files only.
-- **Profile banner** includes a "Remove Profile Banner" checkbox that uses the `remove_profile_banner` virtual attribute we defined on the User model in an earlier lesson. When checked and the form is submitted, the `after_save :purge_profile_banner` callback removes the banner from Cloudinary.
-- **Private** uses a checkbox to toggle the account's privacy setting.
-- **Current password** is required by Devise for any changes. This is a security feature to prevent unauthorized edits from hijacked sessions.
 
 Commit:
 
