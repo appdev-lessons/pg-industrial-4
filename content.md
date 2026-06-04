@@ -1,4 +1,4 @@
-# Photogram Industrial: Building out the views
+# Photogram Industrial, Part 4: Building out the views
 
 ## Getting started
 
