@@ -102,7 +102,7 @@ The result is an unsaved `FollowRequest` instance with `recipient_id` already se
 
 <div class="alert alert-info">
 
-We'll be creating lots of large view templates like this containing conditional logic and all of the helper methods we've learned, plus some new ones. Did you just copy-paste the code above? That's okay, but consider typing out at least some parts of it to help with your understanding. If you do copy-paste, then you should definitely at least carefully read every line of code. If you don't understand something, stop and ask questions!
+<i class="fa-solid fa-circle-info"></i> We'll be creating lots of large view templates like this containing conditional logic and all of the helper methods we've learned, plus some new ones. Did you just copy-paste the code above? That's okay, but consider typing out at least some parts of it to help with your understanding. If you do copy-paste, then you should definitely at least carefully read every line of code. If you don't understand something, stop and ask questions!
 
 Follow that pattern of carefully reading the code and asking questions for the rest of this lesson!
 </div>
@@ -147,9 +147,9 @@ git push --set-upstream origin profile-page-and-views
 
 Now that you've pushed your branch to GitHub, it's time to open a **pull request** (PR). A pull request lets us review your code and leave line-by-line feedback.
 
-<div class="alert alert-info">
+<div class="alert alert-primary">
 
-[Here is a short video demonstration of the process.](https://share.descript.com/view/RLP4apAu5pp) You should also carefully read the notes below!
+<i class="fa-solid fa-circle-play"></i> [Here is a short video demonstration of the process.](https://share.descript.com/view/RLP4apAu5pp) You should also carefully read the notes below!
 </div>
 
 On GitHub, navigate to your `pg-industrial` repository. You should see a prompt to open a pull request for the `profile-page-and-views` branch that you just published, or you can go to the "Pull requests" tab and click "New pull request."
@@ -649,7 +649,7 @@ When you pass an ActiveRecord collection directly to `render`, Rails figures out
 
 <div class="alert alert-success">
 
-**CHECK**: We've done a ton of work to prepare our `_photo.html.erb` partial, touching almost every other model view template that we'll need to build out the app. Let's get a visual on things now.
+<i class="fa-solid fa-circle-check"></i> We've done a ton of work to prepare our `_photo.html.erb` partial, touching almost every other model view template that we'll need to build out the app. Let's get a visual on things now.
 
 If it's not already running, `bin/server` to launch your live app preview. After signing in (did you `rake sample_data`?), manually visit `/photos/1` in the browser. Compare what you see to [the same page in the target](https://pg-industrial.matchthetarget.com/photos/1).
 
@@ -733,7 +733,7 @@ Ask questions now!
 
 <div class="alert alert-success">
 
-**CHECK**: Visit `/` or `/<username>/feed`. You should see real photo cards with images, like buttons, comment forms, and follow buttons! Try adding a comment and see it appear below the photo. Try un-liking and liking the same photo you comment on. This is the moment the app comes alive.
+<i class="fa-solid fa-circle-check"></i> Visit `/` or `/<username>/feed`. You should see real photo cards with images, like buttons, comment forms, and follow buttons! Try adding a comment and see it appear below the photo. Try un-liking and liking the same photo you comment on. This is the moment the app comes alive.
 </div>
 
 Commit:
@@ -770,7 +770,7 @@ This is nearly identical to the feed page and reuses the same photo card partial
 
 <div class="alert alert-success">
 
-**CHECK**: Visit `/<username>/discover`. You should see photos liked by people you follow, rendered as photo cards.
+<i class="fa-solid fa-circle-check"></i> Visit `/<username>/discover`. You should see photos liked by people you follow, rendered as photo cards.
 </div>
 
 Commit:
@@ -830,7 +830,7 @@ The avatar uses `image_tag` with our custom `img-cover img-medium` classes for c
 
 <div class="alert alert-success">
 
-**CHECK**: Visit `/<username>`. You should see a banner area and a circular avatar overlapping it.
+<i class="fa-solid fa-circle-check"></i> Visit `/<username>`. You should see a banner area and a circular avatar overlapping it.
 </div>
 
 ### Display name, private badge, and follow button
@@ -921,7 +921,7 @@ A few details to notice:
 
 <div class="alert alert-success">
 
-**CHECK**: Visit `/<username>`. You should see the display name, username, and stats (followers, following, posts counts) with clickable links.
+<i class="fa-solid fa-circle-check"></i> Visit `/<username>`. You should see the display name, username, and stats (followers, following, posts counts) with clickable links.
 </div>
 
 ### Bio and website
@@ -990,7 +990,7 @@ In the **Likes** tab pane, we render all of the user's liked photos using the `l
 
 <div class="alert alert-success">
 
-**CHECK**: Visit `/<username>`. You should see the complete profile page with banner, avatar, stats, bio, and a tabbed interface. Click "Posts" to see the user's photos (pinned first). Click "Likes" to see photos they've liked.
+<i class="fa-solid fa-circle-check"></i> Visit `/<username>`. You should see the complete profile page with banner, avatar, stats, bio, and a tabbed interface. Click "Posts" to see the user's photos (pinned first). Click "Likes" to see photos they've liked.
 </div>
 
 Commit:
@@ -1079,7 +1079,7 @@ The `link_to :back` generates a link to the previous page using the browser's re
 
 <div class="alert alert-success">
 
-**CHECK**: Visit `/<username>/followers`. You should see a list of followers with avatars, usernames, and follow/unfollow buttons.
+<i class="fa-solid fa-circle-check"></i> Visit `/<username>/followers`. You should see a list of followers with avatars, usernames, and follow/unfollow buttons.
 </div>
 
 ## Following page
@@ -1119,7 +1119,7 @@ This follows the same pattern as the followers page but uses `@follows` (the use
 
 <div class="alert alert-success">
 
-**CHECK**: Visit `/<username>/follows`. You should see a list of people the user follows.
+<i class="fa-solid fa-circle-check"></i> Visit `/<username>/follows`. You should see a list of people the user follows.
 </div>
 
 ```
@@ -1250,7 +1250,7 @@ We can't reuse the `_list_item` partial here because we need the Accept/Reject b
 
 <div class="alert alert-success">
 
-**CHECK**: Visit `/<username>/pending`. You should see pending follow requests with Accept and Reject buttons. Try accepting or rejecting one.
+<i class="fa-solid fa-circle-check"></i> Visit `/<username>/pending`. You should see pending follow requests with Accept and Reject buttons. Try accepting or rejecting one.
 </div>
 
 Commit:
@@ -1284,7 +1284,7 @@ This renders a list group of users. The Ransack search form in the sidebar (from
 
 <div class="alert alert-success">
 
-**CHECK**: Use the search bar in the right sidebar (visible on wide screens) and search for a username. You should see matching users with their avatars and follow buttons.
+<i class="fa-solid fa-circle-check"></i> Use the search bar in the right sidebar (visible on wide screens) and search for a username. You should see matching users with their avatars and follow buttons.
 </div>
 
 ## Photo show and edit pages
@@ -1326,7 +1326,7 @@ Replace `app/views/photos/edit.html.erb`:
 
 <div class="alert alert-success">
 
-**CHECK**: Click `...` → "Edit" on a photo from the feed or profile page → see the edit form with the current image and caption.
+<i class="fa-solid fa-circle-check"></i> Click `...` → "Edit" on a photo from the feed or profile page → see the edit form with the current image and caption.
 </div>
 
 ## Photo likes page
@@ -1358,7 +1358,7 @@ Each like is rendered using the `likes/_like.html.erb` partial we created earlie
 
 <div class="alert alert-success">
 
-**CHECK**: Click the likes count on any photo → see a list of users who liked it, each with a follow/unfollow button.
+<i class="fa-solid fa-circle-check"></i> Click the likes count on any photo → see a list of users who liked it, each with a follow/unfollow button.
 </div>
 
 Commit:
@@ -1493,7 +1493,7 @@ The main changes from the default: we changed "Log in" to "Sign in" in both the 
 
 <div class="alert alert-success">
 
-**CHECK**: Sign out and visit `/users/sign_in`. You should see a styled sign-in form with Bootstrap form controls.
+<i class="fa-solid fa-circle-check"></i> Sign out and visit `/users/sign_in`. You should see a styled sign-in form with Bootstrap form controls.
 </div>
 
 ### Sign up view
@@ -1547,7 +1547,7 @@ The key additions are the `display_name` and `username` fields between the email
 
 <div class="alert alert-success">
 
-**CHECK**: Visit `/users/sign_up`. You should see a sign-up form with Username and Display name fields alongside the standard Email and Password fields.
+<i class="fa-solid fa-circle-check"></i> Visit `/users/sign_up`. You should see a sign-up form with Username and Display name fields alongside the standard Email and Password fields.
 </div>
 
 ### Settings / profile edit view
@@ -1736,7 +1736,7 @@ Finally, close the form with an Update button and a Back link:
 
 <div class="alert alert-success">
 
-**CHECK**: Visit `/users/edit` (or click "Settings" in the sidebar). You should see the full settings form with fields for current password, email, password change, username, display name, bio, website, avatar upload, banner upload, and private toggle. Try uploading a new avatar or changing your bio.
+<i class="fa-solid fa-circle-check"></i> Visit `/users/edit` (or click "Settings" in the sidebar). You should see the full settings form with fields for current password, email, password change, username, display name, bio, website, avatar upload, banner upload, and private toggle. Try uploading a new avatar or changing your bio.
 </div>
 
 Commit:
