@@ -75,13 +75,13 @@ The last `render` passes the form a new follow request, made with `recipient.rec
 Here's a check on `.build`.
 
 - In a library app, what does `author.books.build` return?
-- A new, unsaved book, with its `author_id` already set
-  - Yes! Calling `.build` through an association fills in the foreign key.
-- A new book, saved to the database
-  - Not quite. `.build` doesn't save; that's `.create`.
 - All of the author's books
   - Not quite. That's `author.books` on its own.
-{: .choose_best #build_through_association title="Building through an association" points="1" answer="1" }
+- A new book, saved to the database
+  - Not quite. `.build` doesn't save; that's `.create`.
+- A new, unsaved book, with its `author_id` already set
+  - Yes! Calling `.build` through an association fills in the foreign key.
+{: .choose_best #build_through_association title="Building through an association" points="1" answer="3" }
 
 <div class="alert alert-info">
 
@@ -587,7 +587,7 @@ That's collection rendering again: one photo card for each photo in `@photos`. T
 ```rb{3}
   # ...
   def feed
-    @photos = current_user.feed
+    @photos = current_user.feed.latest
   end
   # ...
 ```
@@ -602,7 +602,7 @@ and `current_user.feed` comes from the `has_many :through` association that we d
 ```
 {: filename="app/models/user.rb" }
 
-So many things come together in that one `render @photos` line: a route, a controller action, an association that joins three tables, and a partial that renders four more. Does it all make sense based on what you've learned so far? This is a great time to pause and make sure you can trace every piece of it.
+So many things come together in that one `render @photos` line: a route, a controller action, an association that joins three tables, the `latest` scope from Part 1 that puts the newest photos first, and a partial that renders four more. Does it all make sense based on what you've learned so far? This is a great time to pause and make sure you can trace every piece of it.
 
 Ask questions now!
 
@@ -813,8 +813,8 @@ Finally, add the Posts and Likes tabs to the bottom of the file:
 
   <div id="posts-pane" class="tab-pane active" data-tabs-target="panel">
     <% if @user.photos_count.positive? %>
-      <%= render @user.own_photos.pinned %>
-      <%= render @user.own_photos.unpinned %>
+      <%= render @user.own_photos.pinned.latest %>
+      <%= render @user.own_photos.unpinned.latest %>
     <% else %>
       <p class="text-zinc-500">
         User hasn't posted anything yet.
@@ -823,7 +823,7 @@ Finally, add the Posts and Likes tabs to the bottom of the file:
   </div>
 
   <div id="likes-pane" class="tab-pane" data-tabs-target="panel">
-    <%= render @user.liked_photos %>
+    <%= render @user.liked_photos.latest %>
   </div>
 </div>
 ```
@@ -837,7 +837,7 @@ This is the `tabs` Stimulus controller from our starting point, used the same wa
 
 The panels' `id`s are there because the page itself needs them: `aria-controls` points at them, both for the controller and for screen readers.
 
-In the **Posts** panel, we render pinned photos first, and then the rest, with the `pinned` and `unpinned` scopes we defined on the Photo model in an earlier lesson. In the **Likes** panel, we render the photos the user has liked, through the `liked_photos` association.
+In the **Posts** panel, we render pinned photos first, and then the rest, with the `pinned` and `unpinned` scopes we defined on the Photo model in an earlier lesson. In the **Likes** panel, we render the photos the user has liked, through the `liked_photos` association. Each group is ordered newest first with the `latest` scope from the same lesson.
 
 <div class="alert alert-success">
 
@@ -1165,6 +1165,42 @@ Replace `app/views/photos/edit.html.erb`:
 <i class="fa-solid fa-circle-check"></i> Visit your profile page, open the `...` menu on one of your photos, and click "Edit." You should see the edit form, with the current image above the file field.
 </div>
 
+The scaffold left two more pages in the same plain shape. `app/views/photos/new.html.erb` is where the phone navbar's "Add photo" link goes, since the modal's buttons aren't in that navbar. Replace it:
+
+```erb
+<% content_for :title, "New photo" %>
+
+<h1>New photo</h1>
+
+<div class="card">
+  <%= render "form", photo: @photo %>
+</div>
+```
+{: filename="app/views/photos/new.html.erb" copyable }
+
+And `app/views/comments/edit.html.erb` is where the "Edit" option on a comment goes. The scaffold's version ends with links to a page for one comment and to the list of every comment, which nothing else in the app links to, so those two links go. Replace it:
+
+```erb
+<% content_for :title, "Editing comment" %>
+
+<%= link_to :back, class: "icon-link mb-4" do %>
+  <i class="fa-solid fa-arrow-left"></i>
+  Back
+<% end %>
+
+<h1>Editing comment</h1>
+
+<div class="card">
+  <%= render "form", comment: @comment %>
+</div>
+```
+{: filename="app/views/comments/edit.html.erb" copyable }
+
+<div class="alert alert-success">
+
+<i class="fa-solid fa-circle-check"></i> Narrow your browser window and click "Add photo" in the top navbar. You should see the new photo form in a card. Then, on any photo, open the `...` menu on a comment and click "Edit." The comment's edit page should look like the photo's.
+</div>
+
 ## Liked by page
 
 When someone clicks the number of likes on a photo, they see everyone who liked it. This uses the nested route `/photos/:photo_id/likes`, which goes to `LikesController#index`.
@@ -1241,7 +1277,7 @@ You should see `66 examples, 42 failures`. That's as many as at the end of the p
        Unable to find button "Sign in" that is not disabled
 ```
 
-Almost every failure is this same one. The tests sign in with a helper method at the bottom of `spec/features/profile_spec.rb`:
+Almost every failure is this same one. The tests sign in with a helper method at the bottom of each feature spec file (this failure's is `spec/features/discover_spec.rb`):
 
 ```rb{6}
 def sign_in(user)
@@ -1467,13 +1503,13 @@ end
 Here's a check on permitted parameters.
 
 - In a recipe app with Devise, you add a `phone` column to `users` and a phone field to the sign-up form. After signing up, the new user's `phone` is blank. What's missing?
-- `:phone` in the `devise_parameter_sanitizer.permit(:sign_up, ...)` keys
-  - Yes! Devise drops any field it hasn't been told to accept.
 - A `validates :phone, presence: true` in the User model
   - Not quite. A validation would reject the blank phone, not save the one that was typed.
+- `:phone` in the `devise_parameter_sanitizer.permit(:sign_up, ...)` keys
+  - Yes! Devise drops any field it hasn't been told to accept.
 - `:phone` in the `:account_update` keys
   - Not quite. That list is for the settings form, not the sign-up form.
-{: .choose_best #permitted_params title="Permitted parameters" points="1" answer="1" }
+{: .choose_best #permitted_params title="Permitted parameters" points="1" answer="2" }
 
 <div class="alert alert-success">
 
