@@ -330,48 +330,23 @@ The photo card is the most important partial in the app. Every photo on the feed
 
 ![A photo card on Alice's profile page, with numbered callouts on its parts](/assets/photo-card-annotated.png)
 
-1. The "Pinned" badge (only on the owner's profile page).
-2. The owner's avatar and username, and a follow button.
-3. The photo.
-4. The like button and the comment count.
-5. The `...` menu: Edit, Delete, and Pin.
-6. The number of likes, which links to the "Liked by" page.
-7. The owner's name, how long ago they posted, and the caption.
-8. The comments.
-9. The form for a new comment.
+1. The owner's avatar and username, and a follow button.
+2. The photo.
+3. The like button and the comment count.
+4. The `...` menu: Edit and Delete.
+5. The number of likes, which links to the "Liked by" page.
+6. The owner's name, how long ago they posted, and the caption.
+7. The comments.
+8. The form for a new comment.
 
 Replace the scaffold-generated `app/views/photos/_photo.html.erb`. We'll build this file section by section, so delete what's in it now.
 
-### Pinned badge
+### Owner and follow button
 
-First, the card itself and the "Pinned" badge:
+First, the card itself, with the owner's avatar and username, and a follow button:
 
 ```erb
 <div class="card">
-  <% if photo.pinned? && current_page?(user_path(photo.owner.username)) %>
-    <div class="icon-link text-blue-600 mb-2">
-      <i class="fa-solid fa-thumbtack"></i>
-      Pinned
-    </div>
-  <% end %>
-<!-- ... -->
-```
-{: filename="app/views/photos/_photo.html.erb" }
-
-`class="card"` turns the `<div>` into a white box with a border and rounded corners, like the cards in [the AppDev styles reference](/lessons/945-style-with-appdev-tailwind#cards).
-
-We only show the "Pinned" badge on the owner's profile page. The `current_page?` helper checks whether the URL of the current request matches the path we give it. Pinned photos also go to the top of the owner's profile page, as we'll see.
-
-You can try pinning in [the target](https://pg-industrial.matchthetarget.com/): sign in, visit your profile page, and use the `...` menu on one of your photos to "Pin" or "Un-pin" it. The thumbtack and "Pinned" don't show on the feed or other pages, where `current_page?(user_path(photo.owner.username))` is `false`.
-
-### Owner and follow button
-
-Next, the owner's avatar and username, and a follow button:
-
-```erb{4-8,10-11}
-<!-- ... -->
-  <% end %>
-
   <div class="flex items-center justify-between mb-2">
     <div class="flex items-center gap-2">
       <%= image_tag photo.owner.avatar_image, class: "rounded-full img-small img-cover" %>
@@ -384,13 +359,15 @@ Next, the owner's avatar and username, and a follow button:
 ```
 {: filename="app/views/photos/_photo.html.erb" }
 
+`class="card"` turns the `<div>` into a white box with a border and rounded corners, like the cards in [the AppDev styles reference](/lessons/945-style-with-appdev-tailwind#cards).
+
 We reuse the `follow_requests/follow_unfollow` partial, with `current_user` as the `sender` and the photo's owner as the `recipient`.
 
 ### Image and action buttons
 
 Now the photo, and below it a row with the like button, a comment count, and the `...` menu:
 
-```erb{4,6-8,10-14,16-19,21-33}
+```erb{4,6-8,10-14,16-19,21-30}
 <!-- ... -->
   </div>
 
@@ -418,9 +395,6 @@ Now the photo, and below it a row with the like button, a comment count, and the
         <li>
           <%= button_to "Delete", photo_path(photo), method: :delete, class: "dropdown-item" %>
         </li>
-        <li>
-          <%= button_to photo.pinned? ? "Un-pin" : "Pin", photo_path(photo), method: :patch, class: "dropdown-item", params: { photo: { pinned: !photo.pinned } } %>
-        </li>
       </ul>
     </div>
   </div>
@@ -428,37 +402,10 @@ Now the photo, and below it a row with the like button, a comment count, and the
 ```
 {: filename="app/views/photos/_photo.html.erb" }
 
-`w-full` stretches the photo to the width of the card, and `rounded-lg` rounds its corners. On the left of the row, we render the like button partial and a comment icon that links to the photo's page. The `...` menu on the right is the same dropdown as the one on each comment, with three options:
+`w-full` stretches the photo to the width of the card, and `rounded-lg` rounds its corners. On the left of the row, we render the like button partial and a comment icon that links to the photo's page. The `...` menu on the right is the same dropdown as the one on each comment, with two options:
 
 - **Edit** links to the photo's edit page.
 - **Delete** sends a DELETE request with `button_to`.
-- **Pin** or **Un-pin** sends a PATCH request that flips the photo's `pinned` column.
-
-#### Pinning with `button_to` and `params:`
-
-The pin line is the trickiest one, so let's unpack it:
-
-```erb
-<%= button_to photo.pinned? ? "Un-pin" : "Pin", photo_path(photo), method: :patch, class: "dropdown-item", params: { photo: { pinned: !photo.pinned } } %>
-```
-
-We already know that `button_to` makes a small form with one button, which submits to a URL. Here:
-
-- `photo.pinned? ? "Un-pin" : "Pin"` is the button's text. This is Ruby's **ternary operator**, a one-line shortcut for an `if`/`else`: `condition ? value_if_true : value_if_false`. If the photo is pinned, the button says "Un-pin"; otherwise, it says "Pin."
-- `photo_path(photo)` is the photo's URL (e.g., `/photos/42`), and `method: :patch` sends a PATCH request there, which reaches the `update` action in `PhotosController`.
-- `params: { photo: { pinned: !photo.pinned } }` adds hidden fields to the form, without our having to write them out. The nested hash means the parameter arrives as `photo[pinned]`, which is the shape that `photo_params` expects in the controller (`params.expect(photo: [ :image, :caption, :pinned ])`).
-- `!photo.pinned` flips the boolean. If the photo is pinned (`true`), we send `false` to un-pin it, and if it isn't, we send `true`. One button, two behaviors.
-
-Here's a check on `button_to` with `params:`.
-
-- A post card has `<%= button_to "Archive", post_path(post), method: :patch, params: { post: { archived: true } } %>`. What does clicking it send?
-- A GET request to `/posts/42?archived=true`
-  - Not quite. `method: :patch` makes it a PATCH request, and `params:` become hidden fields in the form.
-- A PATCH request to `/posts/42`, with `post[archived]` set to `true`
-  - Yes! The nested hash arrives in the shape that `post_params` expects.
-- A PATCH request to `/posts/42`, with no params
-  - Not quite. `params:` adds hidden fields to the form that `button_to` makes.
-{: .choose_best #button_to_params title="Extra params with button_to" points="1" answer="2" }
 
 ### Likes count and caption
 
@@ -576,13 +523,19 @@ Let's put the photo card to use. Replace the stub in `app/views/users/feed.html.
 ```erb
 <% content_for :title, "Feed" %>
 
-<h1>Feed</h1>
+<h1 class="mb-0">Feed</h1>
+
+<p class="text-lg text-zinc-500">
+  Posts by people you follow
+</p>
 
 <%= render @photos %>
 ```
 {: filename="app/views/users/feed.html.erb" }
 
-That's collection rendering again: one photo card for each photo in `@photos`. The `@photos` variable comes from the `UsersController#feed` action:
+The line under the heading tells the user what this page lists. `mb-0` removes the heading's bottom margin, so that the line sits right below it, and `text-lg text-zinc-500` makes the line a little larger and gray.
+
+`render @photos` is collection rendering again: one photo card for each photo in `@photos`. The `@photos` variable comes from the `UsersController#feed` action:
 
 ```rb{3}
   # ...
@@ -608,7 +561,7 @@ Ask questions now!
 
 <div class="alert alert-success">
 
-<i class="fa-solid fa-circle-check"></i> Visit `/`. You should see photo cards with images, like buttons, comment forms, and follow buttons. Add a comment, and see it appear below the photo. Un-like and like a photo.
+<i class="fa-solid fa-circle-check"></i> Visit `/`. You should see "Posts by people you follow" under the heading, and photo cards with images, like buttons, comment forms, and follow buttons. Add a comment, and see it appear below the photo. Un-like and like a photo.
 </div>
 
 ![The feed page, signed in as Alice, with photo cards in the center column](/assets/feed.png)
@@ -628,13 +581,17 @@ The discover page shows photos liked by the people you follow. Replace the stub 
 ```erb
 <% content_for :title, "Discover" %>
 
-<h1>Discover</h1>
+<h1 class="mb-0">Discover</h1>
+
+<p class="text-lg text-zinc-500">
+  Posts liked by people you follow
+</p>
 
 <%= render @photos %>
 ```
 {: filename="app/views/users/discover.html.erb" }
 
-The template is the same as the feed's, and so is the photo card. The difference is where `@photos` comes from: `feed` goes from a user to their leaders to the leaders' own photos, while `discover` goes from a user to their leaders to the photos the leaders liked. The associations we defined in an earlier lesson write all of that SQL for us.
+Apart from the heading and the line under it, the template is the same as the feed's, and so is the photo card. The difference is where `@photos` comes from: `feed` goes from a user to their leaders to the leaders' own photos, while `discover` goes from a user to their leaders to the photos the leaders liked. The associations we defined in an earlier lesson write all of that SQL for us.
 
 <div class="alert alert-success">
 
@@ -659,9 +616,9 @@ Visit `/alice` in [the target](https://pg-industrial.matchthetarget.com/alice). 
 2. The avatar, which overlaps the banner.
 3. The display name, a "Private" badge on private accounts, and a follow button.
 4. The username.
-5. The followers, following, and posts counts. (On your own private account, there's a "pending" count too.)
+5. The followers, following, and posts counts. (On your own profile, there's a "pending" count too.)
 6. The bio and website.
-7. The Posts and Likes tabs, with pinned photos first.
+7. The Posts and Likes tabs.
 
 The route `get ":username" => "users#show", as: :user` sends URLs like `/alice` to the `UsersController#show` action, and the `set_user` `before_action` finds the user with `find_by!(username: params.fetch(:username))`. Can you trace that from `config/routes.rb` to `app/controllers/users_controller.rb`?
 
@@ -741,7 +698,7 @@ Add the followers, following, pending, and posts counts:
     <strong><%= @user.leaders.count %></strong> following
   <% end %>
 
-  <% if current_user == @user && @user.private? %>
+  <% if current_user == @user %>
     <%= link_to pending_path do %>
       <strong><%= @user.pending_received_follow_requests.count %></strong> pending
     <% end %>
@@ -758,7 +715,7 @@ Add the followers, following, pending, and posts counts:
 A few details to notice:
 
 - `link_to ... do ... end` (the block form) puts both the count and the label inside one link.
-- The "pending" count only shows when `current_user == @user && @user.private?`: you can only see your _own_ pending requests, and only a private account has any. `pending_path` takes no username, since `/pending` is always the current user's page.
+- The "pending" count only shows when `current_user == @user`: you can only see your _own_ pending requests. `pending_path` takes no username, since `/pending` is always the current user's page.
 - We use `@user.photos_count` (the counter cache column) instead of `@user.own_photos.count`, which saves a database query.
 
 `flex-wrap` lets the counts wrap onto a second line on a narrow screen.
@@ -791,7 +748,7 @@ Add the user's bio and website link:
 
 Finally, add the Posts and Likes tabs to the bottom of the file:
 
-```erb{4-18,20-29,31-34}
+```erb{4-18,20-28,30-33}
 <!-- ... -->
 <%= link_to @user.website, @user.website, target: "_blank" %>
 
@@ -813,8 +770,7 @@ Finally, add the Posts and Likes tabs to the bottom of the file:
 
   <div id="posts-pane" class="tab-pane active" data-tabs-target="panel">
     <% if @user.photos_count.positive? %>
-      <%= render @user.own_photos.pinned.latest %>
-      <%= render @user.own_photos.unpinned.latest %>
+      <%= render @user.own_photos.latest %>
     <% else %>
       <p class="text-zinc-500">
         User hasn't posted anything yet.
@@ -837,11 +793,11 @@ This is the `tabs` Stimulus controller from our starting point, used the same wa
 
 The panels' `id`s are there because the page itself needs them: `aria-controls` points at them, both for the controller and for screen readers.
 
-In the **Posts** panel, we render pinned photos first, and then the rest, with the `pinned` and `unpinned` scopes we defined on the Photo model in an earlier lesson. In the **Likes** panel, we render the photos the user has liked, through the `liked_photos` association. Each group is ordered newest first with the `latest` scope from the same lesson.
+In the **Posts** panel, we render the user's own photos. In the **Likes** panel, we render the photos the user has liked, through the `liked_photos` association. Both are ordered newest first with the `latest` scope we defined on the Photo model in an earlier lesson.
 
 <div class="alert alert-success">
 
-<i class="fa-solid fa-circle-check"></i> Visit `/alice`. You should see the whole profile page. Her pinned photo is at the top of Posts, with the "Pinned" badge. Click "Likes" to see the photos she's liked, and "Posts" to switch back.
+<i class="fa-solid fa-circle-check"></i> Visit `/alice`. You should see the whole profile page, with her newest photo at the top of Posts. Click "Likes" to see the photos she's liked, and "Posts" to switch back.
 </div>
 
 Commit:
@@ -1077,10 +1033,10 @@ The rest of each `<li>` is the same as our `_list_item` partial, except for the 
 
 <div class="alert alert-success">
 
-<i class="fa-solid fa-circle-check"></i> Alice's account is public, so she has no pending requests. Sign out, and sign in as `bob@example.com` (password `appdev`), whose account is private. Click "pending" on his profile page, or visit `/pending`. You should see his pending follow requests, with Accept and Reject buttons. Try accepting or rejecting one.
+<i class="fa-solid fa-circle-check"></i> Click "pending" on your profile page, or visit `/pending`. You should see Alice's pending follow requests, with Accept and Reject buttons. Try accepting or rejecting one.
 </div>
 
-![Bob's pending page: a card listing each pending follow request with Accept and Reject buttons](/assets/pending.png)
+![Alice's pending page: a card listing each pending follow request with Accept and Reject buttons](/assets/pending.png)
 
 Commit:
 
