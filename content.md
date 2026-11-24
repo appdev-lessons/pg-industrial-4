@@ -76,9 +76,9 @@ Here's a check on `.build`.
 
 - In a library app, what does `author.books.build` return?
 - All of the author's books
-  - Not quite. That's `author.books` on its own.
+  - That's what `author.books` returns on its own, without the `.build`.
 - A new book, saved to the database
-  - Not quite. `.build` doesn't save; that's `.create`.
+  - Almost. `.build` makes the new book but doesn't save it. Saving it right away is what `.create` does.
 - A new, unsaved book, with its `author_id` already set
   - Yes! Calling `.build` through an association fills in the foreign key.
 {: .choose_best #build_through_association title="Building through an association" points="1" answer="3" }
@@ -500,7 +500,7 @@ Here's a check on collection rendering.
 - `books/_book.html.erb`
   - Yes! Rails takes the folder and the partial's name from the model, `Book`.
 - `shared/_book.html.erb`
-  - Not quite. Rails looks in the folder named after the model, `books`.
+  - Rails looks for the partial in the folder named after the model, `books`, not in `shared`.
 {: .choose_best #collection_rendering title="Collection rendering" points="1" answer="2" }
 
 <div class="alert alert-success">
@@ -1193,11 +1193,11 @@ Here's a check on `link_to :back`.
 
 - A page has `<%= link_to "Back", :back %>`. Where does the link go?
 - To the page the browser says it came from, in the `Referer` header
-  - Yes! And if there's no `Referer`, Rails uses `javascript:history.back()`.
+  - Yes! And if there's no `Referer`, Rails links to `javascript:history.back()`, which runs the browser's own Back button.
 - Always to the root page
-  - Not quite. `:back` doesn't name any route of ours.
+  - `:back` isn't the name of a route, so it can't mean the root page. Where the link goes depends on the request.
 - To the previous route in `config/routes.rb`
-  - Not quite. Rails reads where the browser came from, not the order of the routes.
+  - Not quite. The order of the routes has nothing to do with it. Rails uses the page that the browser came from.
 {: .choose_best #link_to_back title="Linking back" points="1" answer="1" }
 
 <div class="alert alert-success">
@@ -1462,9 +1462,9 @@ Here's a check on permitted parameters.
 - A `validates :phone, presence: true` in the User model
   - Not quite. A validation would reject the blank phone, not save the one that was typed.
 - `:phone` in the `devise_parameter_sanitizer.permit(:sign_up, ...)` keys
-  - Yes! Devise drops any field it hasn't been told to accept.
+  - Yes! Devise ignores every form field that it hasn't been told to accept, and `:sign_up` is the list for the sign-up form.
 - `:phone` in the `:account_update` keys
-  - Not quite. That list is for the settings form, not the sign-up form.
+  - Close! That list is for the settings form, not the sign-up form.
 {: .choose_best #permitted_params title="Permitted parameters" points="1" answer="2" }
 
 <div class="alert alert-success">
