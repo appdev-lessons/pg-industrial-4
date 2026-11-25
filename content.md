@@ -314,7 +314,7 @@ Replace the scaffold-generated `app/views/likes/_like.html.erb`:
 ```
 {: filename="app/views/likes/_like.html.erb" copyable }
 
-We'll use this partial on [the "Liked by" page](https://pg-industrial.matchthetarget.com/photos/10/likes), which lists everyone who liked a photo. It has the same shape as a comment: the avatar, then the fan's name and username, with a follow button pushed to the right by `justify-between`.
+We'll use this partial on [the "Liked by" page](https://pg-industrial.matchthetarget.com/photos/10/likes), which lists everyone who liked a photo. It's laid out like a comment: the avatar, then the fan's name and username, with a follow button pushed to the right by `justify-between`.
 
 Now let's commit all the partials we've created so far:
 
@@ -533,7 +533,7 @@ Let's put the photo card to use. Replace the stub in `app/views/users/feed.html.
 ```
 {: filename="app/views/users/feed.html.erb" }
 
-The line under the heading tells the user what this page lists. `mb-0` removes the heading's bottom margin, so that the line sits right below it, and `text-lg text-zinc-500` makes the line a little larger and gray.
+The line under the heading tells the user what this page lists. `mb-0` removes the heading's bottom margin, so that the line is right below it, and `text-lg text-zinc-500` makes the line a little larger and gray.
 
 `render @photos` is collection rendering again: one photo card for each photo in `@photos`. The `@photos` variable comes from the `UsersController#feed` action:
 
@@ -849,7 +849,7 @@ Create `app/views/users/_list_item.html.erb`:
 ```
 {: filename="app/views/users/_list_item.html.erb" copyable }
 
-This has the same shape as the like partial: avatar on the left, then the user's name and username, a follow button on the right, and the bio below. The name links to the user's profile page. `block` puts the username on its own line.
+This is laid out like the like partial: avatar on the left, then the user's name and username, a follow button on the right, and the bio below. The name links to the user's profile page. `block` puts the username on its own line.
 
 ## Followers page
 
@@ -1029,7 +1029,7 @@ Each follow request gets two forms, highlighted above. Both send a PATCH request
 
 That's all `update` needs, since, as we set it up in the previous lesson, it only changes a follow request's `status`.
 
-The rest of each `<li>` is the same as our `_list_item` partial, except for the two buttons in place of the follow button. We could give the partial a flag that decides which buttons to show, but then every page that renders it would need to know about the flag, and the partial would hold two partials' worth of logic. When a partial would have to behave two different ways, it's usually simpler to write the second version out.
+The rest of each `<li>` is the same as our `_list_item` partial, except for the two buttons in place of the follow button. We could give the partial a flag that decides which buttons to show, but then every page that renders it would have to pass the flag, and the partial would hold two partials' worth of logic. When a partial would have to behave two different ways, it's usually simpler to write the second version out.
 
 <div class="alert alert-success">
 
@@ -1121,7 +1121,7 @@ Replace `app/views/photos/edit.html.erb`:
 <i class="fa-solid fa-circle-check"></i> Visit your profile page, open the `...` menu on one of your photos, and click "Edit." You should see the edit form, with the current image above the file field.
 </div>
 
-The scaffold left two more pages in the same plain shape. `app/views/photos/new.html.erb` is where the phone navbar's "Add photo" link goes, since the modal's buttons aren't in that navbar. Replace it:
+The scaffold left two more pages that are still plain. `app/views/photos/new.html.erb` is where the phone navbar's "Add photo" link goes, since the modal's buttons aren't in that navbar. Replace it:
 
 ```erb
 <% content_for :title, "New photo" %>
@@ -1134,7 +1134,7 @@ The scaffold left two more pages in the same plain shape. `app/views/photos/new.
 ```
 {: filename="app/views/photos/new.html.erb" copyable }
 
-And `app/views/comments/edit.html.erb` is where the "Edit" option on a comment goes. The scaffold's version ends with links to a page for one comment and to the list of every comment, which nothing else in the app links to, so those two links go. Replace it:
+And `app/views/comments/edit.html.erb` is where the "Edit" option on a comment goes. The scaffold's version ends with links to a page for one comment and to the list of every comment. No other page in the app links to those, so we leave the two links out. Replace it:
 
 ```erb
 <% content_for :title, "Editing comment" %>
@@ -1217,7 +1217,7 @@ git push
 
 ## Customizing Devise views
 
-Every page is built. Let's see what the tests think. Run `rspec`:
+Every page is built. Let's see how many tests pass now. Run `rspec`:
 
 ```
 rspec
@@ -1551,7 +1551,7 @@ Now write the rest of the form yourself, using what you've seen in the sign-up f
 - A checkbox for `:private` with the label "Private account."
 - An "Update" submit button, and the closing tags.
 
-For each checkbox, use the `form-check` shape from the "Remember me" checkbox in the sign-in form.
+For each checkbox, use the same `form-check` classes as the "Remember me" checkbox in the sign-in form.
 
 <div class="alert alert-success">
 
@@ -1711,7 +1711,7 @@ Run `rspec` one more time.
 
 Our Photogram is now a complete app: a feed, a discover page, profiles with tabs, follower lists, pending requests, search, and Devise pages that match the rest of the app. Every page is built from a handful of partials (the photo card, the follow button, the list item), and most pages are only a few lines long because of them.
 
-In the next lesson, we'll make sure people can only do what they're allowed to do: edit their own photos, see a private account's photos only once they're following it, and so on.
+In Part 5, we'll make sure people can only do what they're allowed to do: edit their own photos, see a private account's photos only once they're following it, and so on.
 
 ---
 
